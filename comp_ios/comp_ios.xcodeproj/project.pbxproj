@@ -10,7 +10,8 @@
 		863B62292FD964320088C895 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 863B62262FD964320088C895 /* Assets.xcassets */; };
 		863B622A2FD964320088C895 /* comp_iosApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B62272FD964320088C895 /* comp_iosApp.swift */; };
 		863B622B2FD964320088C895 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B62282FD964320088C895 /* ContentView.swift */; };
-		863B62352FD96F210088C895 /* GameViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B62342FD96F210088C895 /* GameViewModel.swift */; };
+		863B62352FD96F210088C895 /* GameViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B62332FD969640088C895 /* GameViewModel.swift */; };
+		863B62362FD96F210088C895 /* GameState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B62322FD969440088C895 /* GameState.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -19,7 +20,6 @@
 		863B62282FD964320088C895 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		863B62322FD969440088C895 /* GameState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameState.swift; sourceTree = "<group>"; };
 		863B62332FD969640088C895 /* GameViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameViewModel.swift; sourceTree = "<group>"; };
-		863B62342FD96F210088C895 /* GameViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameViewModel.swift; sourceTree = "<group>"; };
 		868946602FD95D1B005E1193 /* comp_ios.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = comp_ios.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -54,7 +54,6 @@
 			isa = PBXGroup;
 			children = (
 				863B62282FD964320088C895 /* ContentView.swift */,
-				863B62342FD96F210088C895 /* GameViewModel.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -154,6 +153,7 @@
 				863B62352FD96F210088C895 /* GameViewModel.swift in Sources */,
 				863B622A2FD964320088C895 /* comp_iosApp.swift in Sources */,
 				863B622B2FD964320088C895 /* ContentView.swift in Sources */,
+				863B62362FD96F210088C895 /* GameState.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
