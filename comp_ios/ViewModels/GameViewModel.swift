@@ -13,7 +13,11 @@ final class GameViewModel: ObservableObject {
     @Published var state: GameState = .idle
     @Published var timeLeft: Int = 10
     @Published var tapCount: Int = 0
-    @Published var highScore: Int = 0
+    @Published var highScore: Int = UserDefaults.standard.integer(forKey: "HighScoreKey") {
+        didSet {
+            UserDefaults.standard.set(highScore, forKey: "HighScoreKey")
+        }
+    }
 
     // Gameplay state
     @Published var multiplier: Int = 1
@@ -36,6 +40,7 @@ final class GameViewModel: ObservableObject {
     private var moveTimer: Timer?
     private var colorTimer: Timer?
     private var doublePointsTimer: Timer?
+    private var doublePointsEndTimer: Timer?
 
     func startGame() {
         // Reset values and start
@@ -88,7 +93,8 @@ final class GameViewModel: ObservableObject {
             self.isDoublePointsActive = true
             self.hasUsedDoublePointsThisRound = true
             // End after 2 seconds
-            Timer.scheduledTimer(withTimeInterval: 2.0, repeats: false) { [weak self] _ in
+            self.doublePointsEndTimer?.invalidate()
+            self.doublePointsEndTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: false) { [weak self] _ in
                 self?.isDoublePointsActive = false
             }
         }
@@ -126,6 +132,15 @@ final class GameViewModel: ObservableObject {
 
     func tapButton() {
         guard state == .running else { return }
+
+        if buttonMode == .penalty {
+            // Penalty: break the multiplier streak, deduct 5 points, and gain 0 points for this tap
+            multiplier = 1
+            tapCount = max(0, tapCount - 5)
+            lastTapDate = nil
+            return
+        }
+
         let now = Date()
         // Multiplier logic: consecutive taps within 0.5s increase multiplier; break resets to 1
         if let last = lastTapDate, now.timeIntervalSince(last) <= 0.5 {
@@ -142,9 +157,7 @@ final class GameViewModel: ObservableObject {
         switch buttonMode {
         case .bonus:
             points += 1 // small bonus
-        case .penalty:
-            points = max(0, points - 1) // small penalty
-        case .normal:
+        case .normal, .penalty:
             break
         }
 
@@ -166,6 +179,7 @@ final class GameViewModel: ObservableObject {
         moveTimer?.invalidate(); moveTimer = nil
         colorTimer?.invalidate(); colorTimer = nil
         doublePointsTimer?.invalidate(); doublePointsTimer = nil
+        doublePointsEndTimer?.invalidate(); doublePointsEndTimer = nil
         multiplier = 1
         lastTapDate = nil
         buttonOffset = .zero
@@ -180,5 +194,6 @@ final class GameViewModel: ObservableObject {
         moveTimer?.invalidate()
         colorTimer?.invalidate()
         doublePointsTimer?.invalidate()
+        doublePointsEndTimer?.invalidate()
     }
 }
