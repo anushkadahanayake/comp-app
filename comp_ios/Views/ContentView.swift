@@ -89,10 +89,9 @@ struct ContentView: View {
             }
             .padding()
             .alert("Round Over", isPresented: .constant(vm.state == .finished)) {
-                Button("Restart", role: .none) {
+                Button("Restart") {
                     vm.resetGame()
                 }
-                Button("OK", role: .cancel) { }
             } message: {
                 Text("Final Score: \(vm.tapCount)\nHigh Score: \(vm.highScore)")
             }
@@ -111,3 +110,4 @@ struct ContentView: View {
 #Preview {
     ContentView()
 }
+
