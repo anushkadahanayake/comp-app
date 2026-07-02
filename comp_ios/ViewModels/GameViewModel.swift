@@ -14,10 +14,19 @@ final class GameViewModel: ObservableObject {
     @Published var state: GameState = .idle
     @Published var currentMode: GameMode = .tapFrenzy
     
+    // Settings: Round duration (30s / 60s / 90s)
+    @AppStorage("RoundDurationSetting") var roundDurationSetting: Double = 60.0
+    
     // Timer and Score state (using Double for high-precision progress bar rendering)
     @Published var timeLeft: Double = 10.0
     @Published var tapCount: Int = 0
     @Published var isNewHighScore: Bool = false
+
+    // Lives System (Starts at 3, decremented on wrong taps or expired card misses)
+    @Published var lives: Int = 3
+    
+    // Level Up visual overlay flag
+    @Published var showLevelUpAlert: Bool = false
 
     // Tap Frenzy Game State
     @Published var multiplier: Int = 1
@@ -72,10 +81,11 @@ final class GameViewModel: ObservableObject {
             startTapFrenzyTimers()
             
         case .lightItUp:
-            timeLeft = 60.0
+            timeLeft = roundDurationSetting
+            lives = 3
+            showLevelUpAlert = false
             currentLevel = .l1
             
-            // Initialize cards & light up cards
             initializeCards(for: .l1)
             lightUpCards()
         }
@@ -99,14 +109,14 @@ final class GameViewModel: ObservableObject {
                 let fraction = timeLeft / 10.0
                 self.buttonScale = max(0.4, 0.4 + 0.6 * fraction)
             } else if currentMode == .lightItUp {
-                // Determine level progression based on elapsed round time
-                let elapsed = 60.0 - timeLeft
+                // Determine level progression dynamically based on roundDurationSetting
+                let elapsed = roundDurationSetting - timeLeft
                 let newLevel: Level
-                if elapsed < 15.0 {
+                if elapsed < roundDurationSetting * 0.25 {
                     newLevel = .l1
-                } else if elapsed < 30.0 {
+                } else if elapsed < roundDurationSetting * 0.50 {
                     newLevel = .l2
-                } else if elapsed < 45.0 {
+                } else if elapsed < roundDurationSetting * 0.75 {
                     newLevel = .l3
                 } else {
                     newLevel = .l4
@@ -117,6 +127,12 @@ final class GameViewModel: ObservableObject {
                     // Rebuild cards grid for the new level
                     initializeCards(for: newLevel)
                     lightUpCards()
+                    
+                    // Flash Level Up banner overlay
+                    showLevelUpAlert = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+                        self?.showLevelUpAlert = false
+                    }
                 }
             }
         }
@@ -173,11 +189,16 @@ final class GameViewModel: ObservableObject {
         cardTimer = Timer.scheduledTimer(withTimeInterval: currentLevel.litWindow, repeats: false) { [weak self] _ in
             guard let self = self, self.state == .running else { return }
             DispatchQueue.main.async {
-                // Deduct score as a miss penalty if cards go dark without being tapped
+                // If cards went dark without being tapped, lose 1 life!
                 let hadLit = self.cards.contains(where: { $0.isLit })
                 if hadLit {
-                    self.tapCount = max(0, self.tapCount - 1)
-                    self.hapticTrigger = .warning
+                    self.lives = max(0, self.lives - 1)
+                    self.hapticTrigger = .error
+                    
+                    if self.lives <= 0 {
+                        self.endGame()
+                        return
+                    }
                 }
                 self.lightUpCards()
             }
@@ -237,9 +258,13 @@ final class GameViewModel: ObservableObject {
                 lightUpCards()
             }
         } else {
-            // Miss! Tapped dim card
-            tapCount = max(0, tapCount - 1)
+            // Miss! Tapped dim card - deduct 1 life
+            lives = max(0, lives - 1)
             hapticTrigger = .error
+            
+            if lives <= 0 {
+                endGame()
+            }
         }
     }
 
@@ -304,8 +329,10 @@ final class GameViewModel: ObservableObject {
         stopTapFrenzyTimers()
 
         state = .idle
-        timeLeft = currentMode == .tapFrenzy ? 10.0 : 60.0
+        timeLeft = currentMode == .tapFrenzy ? 10.0 : roundDurationSetting
         tapCount = 0
+        lives = 3
+        showLevelUpAlert = false
         multiplier = 1
         lastTapDate = nil
         buttonOffset = .zero

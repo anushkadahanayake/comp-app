@@ -11,6 +11,7 @@
 		863B622A2FD964320088C895 /* comp_iosApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B62272FD964320088C895 /* comp_iosApp.swift */; };
 		863B622B2FD964320088C895 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B62282FD964320088C895 /* ContentView.swift */; };
 		863B62512FD964320088C895 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B62502FD964320088C895 /* HomeView.swift */; };
+		863B62572FD964320088C895 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B62562FD964320088C895 /* SettingsView.swift */; };
 		863B62532FD964320088C895 /* TapFrenzyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B62522FD964320088C895 /* TapFrenzyView.swift */; };
 		863B62552FD964320088C895 /* LightItUpView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B62542FD964320088C895 /* LightItUpView.swift */; };
 		863B62352FD96F210088C895 /* GameViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B62332FD969640088C895 /* GameViewModel.swift */; };
@@ -22,6 +23,7 @@
 		863B62272FD964320088C895 /* comp_iosApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = comp_iosApp.swift; sourceTree = "<group>"; };
 		863B62282FD964320088C895 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		863B62502FD964320088C895 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		863B62562FD964320088C895 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		863B62522FD964320088C895 /* TapFrenzyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TapFrenzyView.swift; sourceTree = "<group>"; };
 		863B62542FD964320088C895 /* LightItUpView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LightItUpView.swift; sourceTree = "<group>"; };
 		863B62322FD969440088C895 /* GameState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameState.swift; sourceTree = "<group>"; };
@@ -61,6 +63,7 @@
 			children = (
 				863B62282FD964320088C895 /* ContentView.swift */,
 				863B62502FD964320088C895 /* HomeView.swift */,
+				863B62562FD964320088C895 /* SettingsView.swift */,
 				863B62522FD964320088C895 /* TapFrenzyView.swift */,
 				863B62542FD964320088C895 /* LightItUpView.swift */,
 			);
@@ -163,6 +166,7 @@
 				863B622A2FD964320088C895 /* comp_iosApp.swift in Sources */,
 				863B622B2FD964320088C895 /* ContentView.swift in Sources */,
 				863B62512FD964320088C895 /* HomeView.swift in Sources */,
+				863B62572FD964320088C895 /* SettingsView.swift in Sources */,
 				863B62532FD964320088C895 /* TapFrenzyView.swift in Sources */,
 				863B62552FD964320088C895 /* LightItUpView.swift in Sources */,
 				863B62362FD96F210088C895 /* GameState.swift in Sources */,

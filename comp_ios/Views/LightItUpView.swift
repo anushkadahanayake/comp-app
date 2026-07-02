@@ -26,7 +26,7 @@ struct LightItUpView: View {
     var body: some View {
         GeometryReader { proxy in
             VStack(spacing: 24) {
-                // Header displaying Scores & Level Info
+                // Header displaying Scores & Lives System
                 HStack(spacing: 16) {
                     VStack(spacing: 4) {
                         Text("SCORE")
@@ -45,14 +45,21 @@ struct LightItUpView: View {
                     .shadow(color: .black.opacity(0.02), radius: 5, x: 0, y: 2)
                     
                     VStack(spacing: 4) {
-                        Text("LEVEL")
+                        Text("LIVES")
                             .font(.system(.caption, design: .rounded))
                             .fontWeight(.bold)
                             .foregroundStyle(.secondary)
-                        Text(vm.currentLevel.name)
-                            .font(.system(.headline, design: .rounded))
-                            .fontWeight(.bold)
-                            .foregroundStyle(levelColor(for: vm.currentLevel))
+                        
+                        HStack(spacing: 4) {
+                            ForEach(1...3, id: \.self) { heartIndex in
+                                Image(systemName: heartIndex <= vm.lives ? "heart.fill" : "heart")
+                                    .font(.system(size: 16))
+                                    .foregroundStyle(heartIndex <= vm.lives ? .red : .gray.opacity(0.4))
+                                    .scaleEffect(heartIndex <= vm.lives ? 1.0 : 0.8)
+                                    .animation(.spring(response: 0.25, dampingFraction: 0.6), value: vm.lives)
+                            }
+                        }
+                        .frame(height: 24)
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
@@ -79,7 +86,7 @@ struct LightItUpView: View {
                 .padding(.horizontal)
                 .padding(.top, 8)
                 
-                // 60s countdown progress bar
+                // Countdown progress bar based on roundDurationSetting
                 VStack(spacing: 8) {
                     HStack {
                         Text("Round Time")
@@ -102,7 +109,7 @@ struct LightItUpView: View {
                             
                             Capsule()
                                 .fill(vm.timeLeft <= 10.0 ? Color.red : Color.orange)
-                                .frame(width: max(0, barProxy.size.width * CGFloat(vm.timeLeft) / 60.0), height: 10)
+                                .frame(width: max(0, barProxy.size.width * CGFloat(vm.timeLeft) / CGFloat(vm.roundDurationSetting)), height: 10)
                                 .animation(.linear(duration: 0.05), value: vm.timeLeft)
                         }
                     }
@@ -110,9 +117,20 @@ struct LightItUpView: View {
                     .padding(.horizontal)
                 }
                 
-                // Active Card Speed Info
+                // Active Card Level Info Bar
                 HStack {
-                    Text("Card Duration:")
+                    Text(vm.currentLevel.name)
+                        .font(.system(.subheadline, design: .rounded))
+                        .fontWeight(.bold)
+                        .foregroundStyle(levelColor(for: vm.currentLevel))
+                        .padding(.vertical, 4)
+                        .padding(.horizontal, 10)
+                        .background(levelColor(for: vm.currentLevel).opacity(0.12))
+                        .cornerRadius(8)
+                    
+                    Spacer()
+                    
+                    Text("Duration:")
                         .font(.caption)
                         .fontWeight(.semibold)
                         .foregroundStyle(.secondary)
@@ -122,8 +140,7 @@ struct LightItUpView: View {
                         .foregroundStyle(.orange)
                     
                     if vm.currentLevel == .l4 {
-                        Spacer()
-                        Text("🔥 2 CARDS LIT!")
+                        Text("• 🔥 2 CARDS LIT!")
                             .font(.caption)
                             .fontWeight(.bold)
                             .foregroundStyle(.red)
@@ -131,7 +148,7 @@ struct LightItUpView: View {
                 }
                 .padding(.horizontal)
                 
-                // Whack-a-Mole Play Area Grid
+                // Play Area Container
                 ZStack {
                     RoundedRectangle(cornerRadius: 24, style: .continuous)
                         .fill(Color(.secondarySystemGroupedBackground))
@@ -142,7 +159,7 @@ struct LightItUpView: View {
                         .shadow(color: .black.opacity(0.03), radius: 10, x: 0, y: 5)
                     
                     if vm.state == .running {
-                        // Cards Grid - Iterates Identifiable Card structures
+                        // Cards Grid
                         LazyVGrid(columns: columns, spacing: 16) {
                             ForEach(vm.cards) { card in
                                 Button(action: {
@@ -153,10 +170,8 @@ struct LightItUpView: View {
                                     ZStack {
                                         if card.isLit {
                                             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                                .fill(
-                                                    LinearGradient(colors: [.orange, .yellow], startPoint: .topLeading, endPoint: .bottomTrailing)
-                                                )
-                                                .shadow(color: .orange.opacity(0.5), radius: 8, x: 0, y: 4)
+                                                .fill(levelGradient(for: vm.currentLevel))
+                                                .shadow(color: levelGlowColor(for: vm.currentLevel).opacity(0.55), radius: 10, x: 0, y: 4)
                                         } else {
                                             RoundedRectangle(cornerRadius: 16, style: .continuous)
                                                 .fill(Color(.systemGray5))
@@ -166,21 +181,51 @@ struct LightItUpView: View {
                                     .scaleEffect(card.isLit ? 1.05 : 1.0)
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                            .stroke(card.isLit ? Color.yellow : Color.gray.opacity(0.2), lineWidth: 1.5)
+                                            .stroke(card.isLit ? Color.white.opacity(0.3) : Color.gray.opacity(0.15), lineWidth: 1.5)
                                     )
                                 }
                                 .buttonStyle(PlainButtonStyle())
-                                .animation(.spring(response: 0.2, dampingFraction: 0.6), value: card.isLit)
+                                .animation(.spring(response: 0.25, dampingFraction: 0.6), value: card.isLit)
                             }
                         }
                         .padding(20)
                         .transition(.scale.combined(with: .opacity))
                     }
                     
+                    // Level Up Flash Overlay
+                    if vm.showLevelUpAlert {
+                        ZStack {
+                            Rectangle()
+                                .fill(.ultraThinMaterial)
+                                .cornerRadius(24)
+                            
+                            VStack(spacing: 12) {
+                                Image(systemName: "arrow.up.circle.fill")
+                                    .font(.system(size: 64))
+                                    .foregroundStyle(
+                                        LinearGradient(colors: [.orange, .yellow], startPoint: .topLeading, endPoint: .bottomTrailing)
+                                    )
+                                    .scaleEffect(1.1)
+                                
+                                Text("LEVEL UP!")
+                                    .font(.system(.title, design: .rounded))
+                                    .fontWeight(.black)
+                                    .foregroundStyle(.primary)
+                                
+                                Text(vm.currentLevel.name)
+                                    .font(.system(.headline, design: .rounded))
+                                    .fontWeight(.bold)
+                                    .foregroundStyle(levelColor(for: vm.currentLevel))
+                            }
+                            .transition(.scale.combined(with: .opacity))
+                        }
+                        .zIndex(2)
+                    }
+                    
                     // Game Over Overlay
                     if vm.state == .finished {
                         VStack(spacing: 16) {
-                            Text("GAME OVER")
+                            Text(vm.lives <= 0 ? "DEFEATED" : "GAME OVER")
                                 .font(.system(.title2, design: .rounded))
                                 .fontWeight(.black)
                                 .foregroundStyle(
@@ -304,6 +349,28 @@ struct LightItUpView: View {
     }
     
     private func levelColor(for level: Level) -> Color {
+        switch level {
+        case .l1: return .blue
+        case .l2: return .green
+        case .l3: return .orange
+        case .l4: return .red
+        }
+    }
+    
+    private func levelGradient(for level: Level) -> LinearGradient {
+        switch level {
+        case .l1:
+            return LinearGradient(colors: [.blue, .cyan], startPoint: .topLeading, endPoint: .bottomTrailing)
+        case .l2:
+            return LinearGradient(colors: [.green, .mint], startPoint: .topLeading, endPoint: .bottomTrailing)
+        case .l3:
+            return LinearGradient(colors: [.orange, .yellow], startPoint: .topLeading, endPoint: .bottomTrailing)
+        case .l4:
+            return LinearGradient(colors: [.red, .purple], startPoint: .topLeading, endPoint: .bottomTrailing)
+        }
+    }
+    
+    private func levelGlowColor(for level: Level) -> Color {
         switch level {
         case .l1: return .blue
         case .l2: return .green

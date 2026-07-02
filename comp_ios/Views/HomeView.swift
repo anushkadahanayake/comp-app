@@ -4,6 +4,7 @@ struct HomeView: View {
     @StateObject private var vm = GameViewModel()
     @AppStorage("HighScore_TapFrenzy") private var highScoreTapFrenzy: Int = 0
     @AppStorage("HighScore_LightItUp") private var highScoreLightItUp: Int = 0
+    @State private var isShowingSettings = false
     
     var body: some View {
         ZStack {
@@ -124,7 +125,7 @@ struct HomeView: View {
                                     .font(.system(.headline, design: .rounded))
                                     .fontWeight(.bold)
                                     .foregroundStyle(.primary)
-                                Text("Whack-a-Mole cards. 60 seconds, levels 1–4, shrinking timers.")
+                                Text("Whack-a-Mole cards. Speed progression, lives, level glows.")
                                     .font(.system(.caption, design: .rounded))
                                     .foregroundStyle(.secondary)
                                     .multilineTextAlignment(.leading)
@@ -160,10 +161,24 @@ struct HomeView: View {
             }
             .padding()
         }
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button(action: {
+                    isShowingSettings = true
+                }) {
+                    Image(systemName: "gearshape.fill")
+                        .font(.system(.headline, design: .rounded))
+                        .foregroundStyle(.primary)
+                }
+            }
+        }
+        .sheet(isPresented: $isShowingSettings) {
+            SettingsView()
+        }
         .onAppear {
             vm.resetGame()
             
-            // Perform manual fallback migration if needed
+            // Perform legacy migration fallback
             let savedFrenzy = UserDefaults.standard.integer(forKey: "HighScore_TapFrenzy")
             if savedFrenzy == 0 {
                 let old = UserDefaults.standard.integer(forKey: "HighScoreKey")
