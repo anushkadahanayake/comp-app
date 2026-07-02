@@ -91,7 +91,7 @@ struct ContentView: View {
                         .shadow(color: .black.opacity(0.03), radius: 8, x: 0, y: 4)
 
                     // Moving game button directly inside play area
-                    if vm.state == .running {
+                    if vm.state == .running || vm.state == .finished {
                         let gradient: LinearGradient = {
                             switch vm.buttonMode {
                             case .normal:
@@ -99,7 +99,7 @@ struct ContentView: View {
                             case .bonus:
                                 return LinearGradient(colors: [.green, .mint], startPoint: .topLeading, endPoint: .bottomTrailing)
                             case .penalty:
-                                return LinearGradient(colors: [.red, .orange], startPoint: .topLeading, endPoint: .bottomTrailing)
+                                return LinearGradient(colors: [.gray, Color(.systemGray3)], startPoint: .topLeading, endPoint: .bottomTrailing)
                             }
                         }()
 
@@ -123,10 +123,77 @@ struct ContentView: View {
                                 .frame(width: 160 * vm.buttonScale, height: 160 * vm.buttonScale)
                                 .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
                         }
-                        .disabled(vm.timeLeft <= 0)
+                        .disabled(vm.state == .finished)
+                        .opacity(vm.state == .finished ? 0.15 : 1.0)
                         .offset(clampedOffset(for: vm.buttonOffset, containerSize: CGSize(width: proxy.size.width - 32, height: 320), buttonScale: vm.buttonScale))
                         .animation(.easeInOut(duration: 0.35), value: vm.buttonOffset)
                         .animation(.easeInOut(duration: 0.2), value: vm.buttonScale)
+                    }
+
+                    if vm.state == .finished {
+                        // Game Over Screen Overlay
+                        VStack(spacing: 16) {
+                            Text("GAME OVER")
+                                .font(.system(.title2, design: .rounded))
+                                .fontWeight(.black)
+                                .foregroundStyle(
+                                    LinearGradient(colors: [.red, .orange], startPoint: .leading, endPoint: .trailing)
+                                )
+                            
+                            VStack(spacing: 4) {
+                                Text("Final Score")
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                                    .foregroundStyle(.secondary)
+                                Text("\(vm.tapCount)")
+                                    .font(.system(.largeTitle, design: .rounded))
+                                    .fontWeight(.bold)
+                                    .foregroundStyle(.primary)
+                            }
+                            
+                            if vm.isNewHighScore {
+                                Text("🎉 NEW HIGH SCORE! 🎉")
+                                    .font(.caption)
+                                    .fontWeight(.bold)
+                                    .foregroundStyle(.white)
+                                    .padding(.vertical, 6)
+                                    .padding(.horizontal, 16)
+                                    .background(
+                                        LinearGradient(colors: [.orange, .yellow], startPoint: .leading, endPoint: .trailing)
+                                    )
+                                    .clipShape(Capsule())
+                                    .shadow(color: .orange.opacity(0.3), radius: 4, x: 0, y: 2)
+                                    .transition(.scale.combined(with: .opacity))
+                            } else {
+                                Text("High Score: \(vm.highScore)")
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                                    .foregroundStyle(.secondary)
+                            }
+                            
+                            Button(action: {
+                                triggerNotificationFeedback(type: .success)
+                                withAnimation {
+                                    vm.startGame()
+                                }
+                            }) {
+                                Text("Play Again")
+                                    .font(.system(.headline, design: .rounded))
+                                    .bold()
+                                    .foregroundStyle(.white)
+                                    .padding(.vertical, 12)
+                                    .padding(.horizontal, 36)
+                                    .background(
+                                        LinearGradient(colors: [.blue, .purple], startPoint: .leading, endPoint: .trailing)
+                                    )
+                                    .clipShape(Capsule())
+                                    .shadow(color: .blue.opacity(0.3), radius: 8, x: 0, y: 4)
+                            }
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .background(Color(.systemBackground).opacity(0.85))
+                        .cornerRadius(20)
+                        .transition(.opacity)
                     } else if vm.state == .idle {
                         // Game start CTA
                         Button(action: {
@@ -189,17 +256,6 @@ struct ContentView: View {
                 Spacer()
             }
             .padding(.vertical)
-            .alert("Round Over", isPresented: .constant(vm.state == .finished)) {
-                Button("Restart", role: .none) {
-                    triggerNotificationFeedback(type: .success)
-                    vm.resetGame()
-                }
-                Button("OK", role: .cancel) {
-                    vm.resetGame()
-                }
-            } message: {
-                Text("Final Score: \(vm.tapCount)\nHigh Score: \(vm.highScore)")
-            }
             .onChange(of: vm.state) { newState in
                 if newState == .finished {
                     triggerNotificationFeedback(type: .warning)

@@ -18,6 +18,7 @@ final class GameViewModel: ObservableObject {
             UserDefaults.standard.set(highScore, forKey: "HighScoreKey")
         }
     }
+    @Published var isNewHighScore: Bool = false
 
     // Gameplay state
     @Published var multiplier: Int = 1
@@ -56,6 +57,7 @@ final class GameViewModel: ObservableObject {
         buttonMode = .normal
         isDoublePointsActive = false
         hasUsedDoublePointsThisRound = false
+        isNewHighScore = false
 
         // Start movement timer (every 2 seconds)
         moveTimer?.invalidate()
@@ -123,6 +125,9 @@ final class GameViewModel: ObservableObject {
                 // Update high score
                 if self.tapCount > self.highScore {
                     self.highScore = self.tapCount
+                    self.isNewHighScore = true
+                } else {
+                    self.isNewHighScore = false
                 }
             }
         }
@@ -187,6 +192,7 @@ final class GameViewModel: ObservableObject {
         buttonMode = .normal
         isDoublePointsActive = false
         hasUsedDoublePointsThisRound = false
+        isNewHighScore = false
     }
 
     deinit {
