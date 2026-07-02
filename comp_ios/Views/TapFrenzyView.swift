@@ -2,6 +2,7 @@ import SwiftUI
 
 struct TapFrenzyView: View {
     @StateObject private var vm = GameViewModel()
+    @AppStorage("HighScore_TapFrenzy") private var highScoreTapFrenzy: Int = 0
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
@@ -30,7 +31,7 @@ struct TapFrenzyView: View {
                             .font(.system(.caption, design: .rounded))
                             .fontWeight(.bold)
                             .foregroundStyle(.secondary)
-                        Text("\(vm.highScoreTapFrenzy)")
+                        Text("\(highScoreTapFrenzy)")
                             .font(.system(.title, design: .rounded))
                             .fontWeight(.bold)
                             .foregroundStyle(.primary)
@@ -149,7 +150,7 @@ struct TapFrenzyView: View {
                                     .shadow(color: .orange.opacity(0.3), radius: 4, x: 0, y: 2)
                                     .transition(.scale.combined(with: .opacity))
                             } else {
-                                Text("High Score: \(vm.highScoreTapFrenzy)")
+                                Text("High Score: \(highScoreTapFrenzy)")
                                     .font(.subheadline)
                                     .fontWeight(.semibold)
                                     .foregroundStyle(.secondary)
@@ -244,6 +245,16 @@ struct TapFrenzyView: View {
         .onAppear {
             vm.currentMode = .tapFrenzy
             vm.resetGame()
+        }
+        .onChange(of: vm.state) { newState in
+            if newState == .finished {
+                if vm.tapCount > highScoreTapFrenzy {
+                    highScoreTapFrenzy = vm.tapCount
+                    vm.isNewHighScore = true
+                } else {
+                    vm.isNewHighScore = false
+                }
+            }
         }
         .onChange(of: vm.hapticTrigger) { trigger in
             guard let trigger = trigger else { return }

@@ -2,24 +2,23 @@ import SwiftUI
 
 struct LightItUpView: View {
     @StateObject private var vm = GameViewModel()
+    @AppStorage("HighScore_LightItUp") private var highScoreLightItUp: Int = 0
     @Environment(\.dismiss) private var dismiss
     
     // Grid columns layout based on the level
     private var columns: [GridItem] {
         switch vm.currentLevel {
-        case 1:
+        case .l1:
             // 3 cards (1 row of 3)
             return Array(repeating: GridItem(.flexible(), spacing: 12), count: 3)
-        case 2:
+        case .l2:
             // 4 cards (2x2 grid)
             return Array(repeating: GridItem(.flexible(), spacing: 16), count: 2)
-        case 3:
+        case .l3:
             // 6 cards (2x3 grid)
             return Array(repeating: GridItem(.flexible(), spacing: 12), count: 3)
-        case 4:
+        case .l4:
             // 9 cards (3x3 grid)
-            return Array(repeating: GridItem(.flexible(), spacing: 12), count: 3)
-        default:
             return Array(repeating: GridItem(.flexible(), spacing: 12), count: 3)
         }
     }
@@ -50,8 +49,8 @@ struct LightItUpView: View {
                             .font(.system(.caption, design: .rounded))
                             .fontWeight(.bold)
                             .foregroundStyle(.secondary)
-                        Text("L\(vm.currentLevel)")
-                            .font(.system(.title, design: .rounded))
+                        Text(vm.currentLevel.name)
+                            .font(.system(.headline, design: .rounded))
                             .fontWeight(.bold)
                             .foregroundStyle(levelColor(for: vm.currentLevel))
                     }
@@ -66,7 +65,7 @@ struct LightItUpView: View {
                             .font(.system(.caption, design: .rounded))
                             .fontWeight(.bold)
                             .foregroundStyle(.secondary)
-                        Text("\(vm.highScoreLightItUp)")
+                        Text("\(highScoreLightItUp)")
                             .font(.system(.title, design: .rounded))
                             .fontWeight(.bold)
                             .foregroundStyle(.primary)
@@ -117,12 +116,12 @@ struct LightItUpView: View {
                         .font(.caption)
                         .fontWeight(.semibold)
                         .foregroundStyle(.secondary)
-                    Text(String(format: "%.1fs", vm.currentLitWindow))
+                    Text(String(format: "%.1fs", vm.currentLevel.litWindow))
                         .font(.caption)
                         .fontWeight(.bold)
                         .foregroundStyle(.orange)
                     
-                    if vm.currentLevel == 4 {
+                    if vm.currentLevel == .l4 {
                         Spacer()
                         Text("🔥 2 CARDS LIT!")
                             .font(.caption)
@@ -143,16 +142,16 @@ struct LightItUpView: View {
                         .shadow(color: .black.opacity(0.03), radius: 10, x: 0, y: 5)
                     
                     if vm.state == .running {
-                        // Cards Grid
+                        // Cards Grid - Iterates Identifiable Card structures
                         LazyVGrid(columns: columns, spacing: 16) {
-                            ForEach(0..<vm.currentModeMaxCards, id: \.self) { index in
-                                let isActive = vm.activeCards.contains(index)
-                                
+                            ForEach(vm.cards) { card in
                                 Button(action: {
-                                    vm.tapCard(at: index)
+                                    withAnimation(.spring(response: 0.2, dampingFraction: 0.6)) {
+                                        vm.tapCard(at: card.id)
+                                    }
                                 }) {
                                     ZStack {
-                                        if isActive {
+                                        if card.isLit {
                                             RoundedRectangle(cornerRadius: 16, style: .continuous)
                                                 .fill(
                                                     LinearGradient(colors: [.orange, .yellow], startPoint: .topLeading, endPoint: .bottomTrailing)
@@ -164,14 +163,14 @@ struct LightItUpView: View {
                                         }
                                     }
                                     .frame(height: cardHeight(for: vm.currentLevel))
-                                    .scaleEffect(isActive ? 1.05 : 1.0)
+                                    .scaleEffect(card.isLit ? 1.05 : 1.0)
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                            .stroke(isActive ? Color.yellow : Color.gray.opacity(0.2), lineWidth: 1.5)
+                                            .stroke(card.isLit ? Color.yellow : Color.gray.opacity(0.2), lineWidth: 1.5)
                                     )
                                 }
                                 .buttonStyle(PlainButtonStyle())
-                                .animation(.spring(response: 0.2, dampingFraction: 0.6), value: isActive)
+                                .animation(.spring(response: 0.2, dampingFraction: 0.6), value: card.isLit)
                             }
                         }
                         .padding(20)
@@ -213,7 +212,7 @@ struct LightItUpView: View {
                                     .shadow(color: .orange.opacity(0.3), radius: 4, x: 0, y: 2)
                                     .transition(.scale.combined(with: .opacity))
                             } else {
-                                Text("High Score: \(vm.highScoreLightItUp)")
+                                Text("High Score: \(highScoreLightItUp)")
                                     .font(.subheadline)
                                     .fontWeight(.semibold)
                                     .foregroundStyle(.secondary)
@@ -276,6 +275,16 @@ struct LightItUpView: View {
             vm.currentMode = .lightItUp
             vm.resetGame()
         }
+        .onChange(of: vm.state) { newState in
+            if newState == .finished {
+                if vm.tapCount > highScoreLightItUp {
+                    highScoreLightItUp = vm.tapCount
+                    vm.isNewHighScore = true
+                } else {
+                    vm.isNewHighScore = false
+                }
+            }
+        }
         .onChange(of: vm.hapticTrigger) { trigger in
             guard let trigger = trigger else { return }
             switch trigger {
@@ -294,23 +303,21 @@ struct LightItUpView: View {
         }
     }
     
-    private func levelColor(for level: Int) -> Color {
+    private func levelColor(for level: Level) -> Color {
         switch level {
-        case 1: return .blue
-        case 2: return .green
-        case 3: return .orange
-        case 4: return .red
-        default: return .blue
+        case .l1: return .blue
+        case .l2: return .green
+        case .l3: return .orange
+        case .l4: return .red
         }
     }
     
-    private func cardHeight(for level: Int) -> CGFloat {
+    private func cardHeight(for level: Level) -> CGFloat {
         switch level {
-        case 1: return 200 // row of 3 has plenty of height
-        case 2: return 120 // 2x2 grid
-        case 3: return 110 // 2x3 grid
-        case 4: return 75  // 3x3 grid
-        default: return 100
+        case .l1: return 200 // row of 3 has plenty of height
+        case .l2: return 120 // 2x2 grid
+        case .l3: return 110 // 2x3 grid
+        case .l4: return 75  // 3x3 grid
         }
     }
     

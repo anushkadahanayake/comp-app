@@ -2,6 +2,8 @@ import SwiftUI
 
 struct HomeView: View {
     @StateObject private var vm = GameViewModel()
+    @AppStorage("HighScore_TapFrenzy") private var highScoreTapFrenzy: Int = 0
+    @AppStorage("HighScore_LightItUp") private var highScoreLightItUp: Int = 0
     
     var body: some View {
         ZStack {
@@ -31,7 +33,7 @@ struct HomeView: View {
                             .foregroundStyle(.white)
                     }
                     
-                    Text("TAP FRENZY")
+                    Text("ARCADE FRENZY")
                         .font(.system(.largeTitle, design: .rounded))
                         .fontWeight(.black)
                         .foregroundStyle(
@@ -84,7 +86,7 @@ struct HomeView: View {
                                 Text("BEST")
                                     .font(.system(size: 9, weight: .black, design: .rounded))
                                     .foregroundStyle(.secondary)
-                                Text("\(vm.highScoreTapFrenzy)")
+                                Text("\(highScoreTapFrenzy)")
                                     .font(.system(.title3, design: .rounded))
                                     .fontWeight(.bold)
                                     .foregroundStyle(.primary)
@@ -135,7 +137,7 @@ struct HomeView: View {
                                 Text("BEST")
                                     .font(.system(size: 9, weight: .black, design: .rounded))
                                     .foregroundStyle(.secondary)
-                                Text("\(vm.highScoreLightItUp)")
+                                Text("\(highScoreLightItUp)")
                                     .font(.system(.title3, design: .rounded))
                                     .fontWeight(.bold)
                                     .foregroundStyle(.primary)
@@ -159,7 +161,16 @@ struct HomeView: View {
             .padding()
         }
         .onAppear {
-            vm.resetGame() // reload states and refresh highscores
+            vm.resetGame()
+            
+            // Perform manual fallback migration if needed
+            let savedFrenzy = UserDefaults.standard.integer(forKey: "HighScore_TapFrenzy")
+            if savedFrenzy == 0 {
+                let old = UserDefaults.standard.integer(forKey: "HighScoreKey")
+                if old > 0 {
+                    highScoreTapFrenzy = old
+                }
+            }
         }
     }
 }
