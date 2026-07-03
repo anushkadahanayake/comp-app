@@ -9,12 +9,11 @@ struct HomeView: View {
     
     var body: some View {
         ZStack {
-            // Premium background
-            LinearGradient(
-                colors: [Color(.systemBackground), Color(.systemGray6)],
-                startPoint: .top,
-                endPoint: .bottom
-            )
+            // Premium fluid animated background
+            ZStack {
+                FluidBackgroundView()
+                FloatingParticlesView()
+            }
             .ignoresSafeArea()
             
             VStack(spacing: 36) {
@@ -25,10 +24,10 @@ struct HomeView: View {
                     ZStack {
                         Circle()
                             .fill(
-                                LinearGradient(colors: [.blue, .purple], startPoint: .topLeading, endPoint: .bottomTrailing)
+                                LinearGradient(colors: [.blue, .cyan], startPoint: .topLeading, endPoint: .bottomTrailing)
                             )
                             .frame(width: 90, height: 90)
-                            .shadow(color: .purple.opacity(0.35), radius: 15, x: 0, y: 8)
+                            .shadow(color: .blue.opacity(0.25), radius: 15, x: 0, y: 8)
                         
                         Image(systemName: "gamecontroller.fill")
                             .font(.system(size: 42))
@@ -95,7 +94,8 @@ struct HomeView: View {
                             }
                         }
                         .padding(.all, 16)
-                        .background(Color(.secondarySystemGroupedBackground))
+                        .background(Color(.secondarySystemGroupedBackground).opacity(0.85))
+                        .background(.ultraThinMaterial)
                         .cornerRadius(22)
                         .overlay(
                             RoundedRectangle(cornerRadius: 22, style: .continuous)
@@ -146,7 +146,8 @@ struct HomeView: View {
                             }
                         }
                         .padding(.all, 16)
-                        .background(Color(.secondarySystemGroupedBackground))
+                        .background(Color(.secondarySystemGroupedBackground).opacity(0.85))
+                        .background(.ultraThinMaterial)
                         .cornerRadius(22)
                         .overlay(
                             RoundedRectangle(cornerRadius: 22, style: .continuous)
@@ -197,7 +198,8 @@ struct HomeView: View {
                             }
                         }
                         .padding(.all, 16)
-                        .background(Color(.secondarySystemGroupedBackground))
+                        .background(Color(.secondarySystemGroupedBackground).opacity(0.85))
+                        .background(.ultraThinMaterial)
                         .cornerRadius(22)
                         .overlay(
                             RoundedRectangle(cornerRadius: 22, style: .continuous)
@@ -236,6 +238,85 @@ struct HomeView: View {
                 let old = UserDefaults.standard.integer(forKey: "HighScoreKey")
                 if old > 0 {
                     highScoreTapFrenzy = old
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Fluid Aurora Background View
+struct FluidBackgroundView: View {
+    @State private var animate = false
+    
+    var body: some View {
+        ZStack {
+            Color(.systemBackground)
+                .ignoresSafeArea()
+            
+            ZStack {
+                // Blob 1 (Blue)
+                Circle()
+                    .fill(Color.blue.opacity(0.12))
+                    .frame(width: 320, height: 320)
+                    .offset(x: animate ? -60 : 60, y: animate ? -90 : 90)
+                    .blur(radius: 50)
+                
+                // Blob 2 (Cyan)
+                Circle()
+                    .fill(Color.cyan.opacity(0.10))
+                    .frame(width: 280, height: 280)
+                    .offset(x: animate ? 80 : -80, y: animate ? 100 : -100)
+                    .blur(radius: 45)
+                
+                // Blob 3 (Purple/Lavender)
+                Circle()
+                    .fill(Color.purple.opacity(0.08))
+                    .frame(width: 240, height: 240)
+                    .offset(x: animate ? -100 : 100, y: animate ? 60 : -60)
+                    .blur(radius: 40)
+            }
+            .onAppear {
+                withAnimation(
+                    .easeInOut(duration: 10.0)
+                    .repeatForever(autoreverses: true)
+                ) {
+                    animate.toggle()
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Floating Particles Background View
+struct FloatingParticlesView: View {
+    @State private var animate = false
+    
+    private let particleCoordinates: [CGPoint] = (0..<15).map { _ in
+        CGPoint(
+            x: CGFloat.random(in: 20...350),
+            y: CGFloat.random(in: 100...700)
+        )
+    }
+    
+    var body: some View {
+        GeometryReader { proxy in
+            ZStack {
+                ForEach(0..<15, id: \.self) { index in
+                    Circle()
+                        .fill(Color.blue.opacity(0.06))
+                        .frame(width: CGFloat.random(in: 12...24))
+                        .blur(radius: 1.5)
+                        .position(particleCoordinates[index])
+                        .offset(y: animate ? -250 : 250)
+                        .opacity(animate ? 0.1 : 0.8)
+                }
+            }
+            .onAppear {
+                withAnimation(
+                    .linear(duration: Double.random(in: 14.0...20.0))
+                    .repeatForever(autoreverses: false)
+                ) {
+                    animate.toggle()
                 }
             }
         }
