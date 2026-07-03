@@ -7,6 +7,12 @@ struct HomeView: View {
     @AppStorage("HighScore_QuizRush") private var highScoreQuizRush: Int = 0
     @State private var isShowingSettings = false
     
+    // States for entrance animations
+    @State private var animateHeader = false
+    @State private var animateCard1 = false
+    @State private var animateCard2 = false
+    @State private var animateCard3 = false
+    
     var body: some View {
         ZStack {
             // Premium fluid animated background
@@ -33,6 +39,8 @@ struct HomeView: View {
                             .font(.system(size: 42))
                             .foregroundStyle(.white)
                     }
+                    .scaleEffect(animateHeader ? 1.0 : 0.5)
+                    .opacity(animateHeader ? 1.0 : 0.0)
                     
                     Text("ARCADE FRENZY")
                         .font(.system(.largeTitle, design: .rounded))
@@ -44,11 +52,15 @@ struct HomeView: View {
                                 endPoint: .bottom
                             )
                         )
+                        .offset(y: animateHeader ? 0 : -20)
+                        .opacity(animateHeader ? 1.0 : 0.0)
                     
                     Text("Double game mode response challenge")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                         .fontWeight(.medium)
+                        .offset(y: animateHeader ? 0 : -10)
+                        .opacity(animateHeader ? 1.0 : 0.0)
                 }
                 
                 // Selection Cards
@@ -104,6 +116,8 @@ struct HomeView: View {
                         .shadow(color: .black.opacity(0.04), radius: 10, x: 0, y: 5)
                     }
                     .buttonStyle(PlainButtonStyle())
+                    .offset(y: animateCard1 ? 0 : 60)
+                    .opacity(animateCard1 ? 1.0 : 0.0)
                     
                     // Mode 2: Light It Up Card
                     NavigationLink(destination: LightItUpView()) {
@@ -156,6 +170,8 @@ struct HomeView: View {
                         .shadow(color: .black.opacity(0.04), radius: 10, x: 0, y: 5)
                     }
                     .buttonStyle(PlainButtonStyle())
+                    .offset(y: animateCard2 ? 0 : 60)
+                    .opacity(animateCard2 ? 1.0 : 0.0)
                     
                     // Mode 3: Quiz Rush Card
                     NavigationLink(destination: QuizRushView()) {
@@ -208,6 +224,8 @@ struct HomeView: View {
                         .shadow(color: .black.opacity(0.04), radius: 10, x: 0, y: 5)
                     }
                     .buttonStyle(PlainButtonStyle())
+                    .offset(y: animateCard3 ? 0 : 60)
+                    .opacity(animateCard3 ? 1.0 : 0.0)
                 }
                 .padding(.horizontal)
                 
@@ -239,6 +257,23 @@ struct HomeView: View {
                 if old > 0 {
                     highScoreTapFrenzy = old
                 }
+            }
+            
+            // Trigger cascading load animations
+            withAnimation(.spring(response: 0.75, dampingFraction: 0.75)) {
+                animateHeader = true
+            }
+            
+            withAnimation(.spring(response: 0.65, dampingFraction: 0.7).delay(0.15)) {
+                animateCard1 = true
+            }
+            
+            withAnimation(.spring(response: 0.65, dampingFraction: 0.7).delay(0.28)) {
+                animateCard2 = true
+            }
+            
+            withAnimation(.spring(response: 0.65, dampingFraction: 0.7).delay(0.40)) {
+                animateCard3 = true
             }
         }
     }
