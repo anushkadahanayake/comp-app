@@ -61,37 +61,40 @@ enum Level: CaseIterable {
 // MARK: - Trivia Models
 struct TriviaResponse: Codable {
     let response_code: Int
-    let results: [TriviaQuestion]
+    let results: [Question]
 }
 
-struct TriviaQuestion: Codable, Identifiable, Equatable {
+struct Question: Codable, Identifiable, Equatable {
     var id: UUID = UUID()
     let category: String
     let type: String
     let difficulty: String
     let question: String
-    let correctAnswer: String
-    let incorrectAnswers: [String]
+    let correct_answer: String
+    let incorrect_answers: [String]
     
-    // Decoded question text
+    // Decoded question helper
     var decodedQuestion: String {
         question.decodingHTMLEntities()
     }
     
-    // Decoded and shuffled answers prepared for display
-    var shuffledAnswers: [String] {
-        var list = incorrectAnswers.map { $0.decodingHTMLEntities() }
-        list.append(correctAnswer.decodingHTMLEntities())
-        return list.shuffled()
+    // Decoded correct answer helper
+    var decodedCorrectAnswer: String {
+        correct_answer.decodingHTMLEntities()
+    }
+    
+    // Decoded incorrect answers helper
+    var decodedIncorrectAnswers: [String] {
+        incorrect_answers.map { $0.decodingHTMLEntities() }
     }
 
     enum CodingKeys: String, CodingKey {
         case category, type, difficulty, question
-        case correctAnswer = "correct_answer"
-        case incorrectAnswers = "incorrect_answers"
+        case correct_answer = "correct_answer"
+        case incorrect_answers = "incorrect_answers"
     }
     
-    static func == (lhs: TriviaQuestion, rhs: TriviaQuestion) -> Bool {
+    static func == (lhs: Question, rhs: Question) -> Bool {
         return lhs.id == rhs.id
     }
 }

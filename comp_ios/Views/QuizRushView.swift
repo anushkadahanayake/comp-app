@@ -16,15 +16,17 @@ struct QuizRushView: View {
             .ignoresSafeArea()
             
             VStack {
-                switch vm.state {
+                switch vm.viewState {
                 case .loading:
                     loadingView
-                case .error(let message):
+                case .failed(let message):
                     errorView(message: message)
-                case .playing:
-                    gameplayView
-                case .finished:
-                    gameOverView
+                case .loaded:
+                    if vm.index < vm.questions.count {
+                        gameplayView
+                    } else {
+                        gameOverView
+                    }
                 }
             }
         }
@@ -33,8 +35,9 @@ struct QuizRushView: View {
         .task {
             await vm.load()
         }
-        .onChange(of: vm.state) { newState in
-            if newState == .finished {
+        .onChange(of: vm.index) { newIndex in
+            // Handle high score updates as soon as the user completes the 10th question
+            if newIndex >= vm.questions.count && !vm.questions.isEmpty {
                 if vm.score > highScoreQuizRush {
                     highScoreQuizRush = vm.score
                     vm.isNewHighScore = true
@@ -117,7 +120,7 @@ struct QuizRushView: View {
                         .font(.system(.caption, design: .rounded))
                         .fontWeight(.bold)
                         .foregroundStyle(.secondary)
-                    Text("\(vm.currentIndex + 1) / 10")
+                    Text("\(vm.index + 1) / \(vm.questions.count)")
                         .font(.system(.headline, design: .rounded))
                         .fontWeight(.bold)
                 }
@@ -166,12 +169,12 @@ struct QuizRushView: View {
             .padding(.horizontal)
             .padding(.top, 8)
             
-            // Question Card Display (with shake effect modifier)
+            // Question Card Display
             if let question = vm.currentQuestion {
                 VStack(spacing: 16) {
                     Spacer()
                     
-                    Text(question.question)
+                    Text(question.decodedQuestion)
                         .font(.system(.title3, design: .rounded))
                         .fontWeight(.semibold)
                         .foregroundStyle(.primary)
@@ -193,9 +196,9 @@ struct QuizRushView: View {
                 .modifier(ShakeEffect(animatableData: vm.shakeTrigger))
                 .padding(.horizontal)
                 
-                // Stack of 4 Choices
+                // Choices List (Cached Shuffled Order)
                 VStack(spacing: 12) {
-                    ForEach(question.shuffledAnswers, id: \.self) { answer in
+                    ForEach(vm.shuffledAnswers(for: question), id: \.self) { answer in
                         Button(action: {
                             withAnimation(.spring(response: 0.2, dampingFraction: 0.6)) {
                                 vm.tapAnswer(answer)
@@ -300,7 +303,7 @@ struct QuizRushView: View {
         }
     }
     
-    // MARK: - Answer Button Custom Styling helpers
+    // MARK: - Choice Styling Helpers
     private func choiceBackgroundColor(for answer: String) -> Color {
         if let correct = vm.correctHighlightIndex, correct == answer {
             return .green
@@ -344,6 +347,11 @@ struct QuizRushView: View {
 // MARK: - Shake Geometry Effect
 struct ShakeEffect: GeometryEffect {
     var animatableData: CGFloat
+    
+    var animatableDataModifier: CGFloat {
+        get { animatableData }
+        set { animatableData = newValue }
+    }
     
     func effectValue(size: CGSize) -> ProjectionTransform {
         ProjectionTransform(CGAffineTransform(translationX: 12 * sin(animatableData * .pi * 2), y: 0))

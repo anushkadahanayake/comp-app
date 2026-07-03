@@ -3,7 +3,7 @@ import Foundation
 struct TriviaService {
     private let urlString = "https://opentdb.com/api.php?amount=10&type=multiple"
     
-    func fetchQuestions() async throws -> [TriviaQuestion] {
+    func fetchQuestions() async throws -> [Question] {
         guard let url = URL(string: urlString) else {
             throw URLError(.badURL)
         }
