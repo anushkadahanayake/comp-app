@@ -30,8 +30,8 @@ struct QuizRushView: View {
         }
         .navigationTitle("Quiz Rush")
         .navigationBarTitleDisplayMode(.inline)
-        .onAppear {
-            vm.startGame()
+        .task {
+            await vm.load()
         }
         .onChange(of: vm.state) { newState in
             if newState == .finished {
@@ -88,7 +88,9 @@ struct QuizRushView: View {
                 .padding(.horizontal, 32)
             
             Button(action: {
-                vm.startGame()
+                Task {
+                    await vm.load()
+                }
             }) {
                 Text("Retry")
                     .font(.system(.headline, design: .rounded))
@@ -164,7 +166,7 @@ struct QuizRushView: View {
             .padding(.horizontal)
             .padding(.top, 8)
             
-            // Question Card Display
+            // Question Card Display (with shake effect modifier)
             if let question = vm.currentQuestion {
                 VStack(spacing: 16) {
                     Spacer()
@@ -188,6 +190,7 @@ struct QuizRushView: View {
                         .stroke(Color.gray.opacity(0.12), lineWidth: 1.5)
                 )
                 .shadow(color: .black.opacity(0.03), radius: 10, x: 0, y: 5)
+                .modifier(ShakeEffect(animatableData: vm.shakeTrigger))
                 .padding(.horizontal)
                 
                 // Stack of 4 Choices
@@ -201,17 +204,18 @@ struct QuizRushView: View {
                             Text(answer)
                                 .font(.system(.body, design: .rounded))
                                 .fontWeight(.semibold)
-                                .foregroundStyle(.primary)
+                                .foregroundStyle(choiceTextColor(for: answer))
                                 .padding(.vertical, 16)
                                 .frame(maxWidth: .infinity)
-                                .background(Color(.secondarySystemGroupedBackground))
+                                .background(choiceBackgroundColor(for: answer))
                                 .cornerRadius(16)
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                        .stroke(Color.gray.opacity(0.15), lineWidth: 1.5)
+                                        .stroke(choiceBorderColor(for: answer), lineWidth: 1.5)
                                 )
                                 .shadow(color: .black.opacity(0.02), radius: 4, x: 0, y: 2)
                         }
+                        .disabled(vm.isTransitioning)
                         .buttonStyle(PlainButtonStyle())
                     }
                 }
@@ -265,8 +269,8 @@ struct QuizRushView: View {
                 }
                 
                 Button(action: {
-                    withAnimation {
-                        vm.startGame()
+                    Task {
+                        await vm.load()
                     }
                 }) {
                     Text("Play Again")
@@ -296,10 +300,53 @@ struct QuizRushView: View {
         }
     }
     
+    // MARK: - Answer Button Custom Styling helpers
+    private func choiceBackgroundColor(for answer: String) -> Color {
+        if let correct = vm.correctHighlightIndex, correct == answer {
+            return .green
+        }
+        if let wrong = vm.wrongHighlightIndex, wrong == answer {
+            return .red
+        }
+        if vm.isTransitioning {
+            return Color(.systemGray6)
+        }
+        return Color(.secondarySystemGroupedBackground)
+    }
+    
+    private func choiceTextColor(for answer: String) -> Color {
+        if vm.correctHighlightIndex == answer || vm.wrongHighlightIndex == answer {
+            return .white
+        }
+        if vm.isTransitioning {
+            return .secondary
+        }
+        return .primary
+    }
+    
+    private func choiceBorderColor(for answer: String) -> Color {
+        if vm.correctHighlightIndex == answer {
+            return .green
+        }
+        if vm.wrongHighlightIndex == answer {
+            return .red
+        }
+        return Color.gray.opacity(0.15)
+    }
+    
     private func triggerNotificationFeedback(type: UINotificationFeedbackGenerator.FeedbackType) {
         let generator = UINotificationFeedbackGenerator()
         generator.prepare()
         generator.notificationOccurred(type)
+    }
+}
+
+// MARK: - Shake Geometry Effect
+struct ShakeEffect: GeometryEffect {
+    var animatableData: CGFloat
+    
+    func effectValue(size: CGSize) -> ProjectionTransform {
+        ProjectionTransform(CGAffineTransform(translationX: 12 * sin(animatableData * .pi * 2), y: 0))
     }
 }
 
