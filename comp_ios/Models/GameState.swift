@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 
 enum GameState {
     case idle
@@ -9,6 +10,7 @@ enum GameState {
 enum GameMode: String, CaseIterable, Identifiable {
     case tapFrenzy = "Tap Frenzy"
     case lightItUp = "Light It Up"
+    case quizRush = "Quiz Rush"
     
     var id: String { self.rawValue }
 }
@@ -53,5 +55,58 @@ enum Level: CaseIterable {
         case .l4: return 2
         default: return 1
         }
+    }
+}
+
+// MARK: - Trivia Models
+struct TriviaResponse: Codable {
+    let response_code: Int
+    let results: [TriviaQuestion]
+}
+
+struct TriviaQuestion: Codable, Identifiable, Equatable {
+    var id: UUID = UUID()
+    let category: String
+    let type: String
+    let difficulty: String
+    let question: String
+    let correctAnswer: String
+    let incorrectAnswers: [String]
+    
+    // Decoded question text
+    var decodedQuestion: String {
+        question.decodingHTMLEntities()
+    }
+    
+    // Decoded and shuffled answers prepared for display
+    var shuffledAnswers: [String] {
+        var list = incorrectAnswers.map { $0.decodingHTMLEntities() }
+        list.append(correctAnswer.decodingHTMLEntities())
+        return list.shuffled()
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case category, type, difficulty, question
+        case correctAnswer = "correct_answer"
+        case incorrectAnswers = "incorrect_answers"
+    }
+    
+    static func == (lhs: TriviaQuestion, rhs: TriviaQuestion) -> Bool {
+        return lhs.id == rhs.id
+    }
+}
+
+// MARK: - HTML Decoding Extension
+extension String {
+    func decodingHTMLEntities() -> String {
+        guard let data = self.data(using: .utf8) else { return self }
+        let options: [NSAttributedString.DocumentReadingOptionKey: Any] = [
+            .documentType: NSAttributedString.DocumentType.html,
+            .characterEncoding: String.Encoding.utf8.rawValue
+        ]
+        if let attributedString = try? NSAttributedString(data: data, options: options, documentAttributes: nil) {
+            return attributedString.string
+        }
+        return self
     }
 }

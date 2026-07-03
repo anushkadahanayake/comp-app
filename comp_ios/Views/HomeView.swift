@@ -4,6 +4,7 @@ struct HomeView: View {
     @StateObject private var vm = GameViewModel()
     @AppStorage("HighScore_TapFrenzy") private var highScoreTapFrenzy: Int = 0
     @AppStorage("HighScore_LightItUp") private var highScoreLightItUp: Int = 0
+    @AppStorage("HighScore_QuizRush") private var highScoreQuizRush: Int = 0
     @State private var isShowingSettings = false
     
     var body: some View {
@@ -52,7 +53,7 @@ struct HomeView: View {
                 }
                 
                 // Selection Cards
-                VStack(spacing: 20) {
+                VStack(spacing: 16) {
                     // Mode 1: Tap Frenzy Card
                     NavigationLink(destination: TapFrenzyView()) {
                         HStack(spacing: 18) {
@@ -139,6 +140,57 @@ struct HomeView: View {
                                     .font(.system(size: 9, weight: .black, design: .rounded))
                                     .foregroundStyle(.secondary)
                                 Text("\(highScoreLightItUp)")
+                                    .font(.system(.title3, design: .rounded))
+                                    .fontWeight(.bold)
+                                    .foregroundStyle(.primary)
+                            }
+                        }
+                        .padding(.all, 16)
+                        .background(Color(.secondarySystemGroupedBackground))
+                        .cornerRadius(22)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                                .stroke(Color.gray.opacity(0.12), lineWidth: 1.5)
+                        )
+                        .shadow(color: .black.opacity(0.04), radius: 10, x: 0, y: 5)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    
+                    // Mode 3: Quiz Rush Card
+                    NavigationLink(destination: QuizRushView()) {
+                        HStack(spacing: 18) {
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                    .fill(
+                                        LinearGradient(colors: [.purple, .blue], startPoint: .topLeading, endPoint: .bottomTrailing)
+                                    )
+                                    .frame(width: 64, height: 64)
+                                    .shadow(color: .purple.opacity(0.2), radius: 6, x: 0, y: 3)
+                                
+                                Image(systemName: "questionmark.bubble.fill")
+                                    .font(.title2)
+                                    .foregroundStyle(.white)
+                            }
+                            
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Quiz Rush")
+                                    .font(.system(.headline, design: .rounded))
+                                    .fontWeight(.bold)
+                                    .foregroundStyle(.primary)
+                                Text("Trivia challenge. 10 live questions, streaks, async APIs, no lives.")
+                                    .font(.system(.caption, design: .rounded))
+                                    .foregroundStyle(.secondary)
+                                    .multilineTextAlignment(.leading)
+                                    .lineLimit(2)
+                            }
+                            
+                            Spacer()
+                            
+                            VStack(alignment: .trailing, spacing: 4) {
+                                Text("BEST")
+                                    .font(.system(size: 9, weight: .black, design: .rounded))
+                                    .foregroundStyle(.secondary)
+                                Text("\(highScoreQuizRush)")
                                     .font(.system(.title3, design: .rounded))
                                     .fontWeight(.bold)
                                     .foregroundStyle(.primary)

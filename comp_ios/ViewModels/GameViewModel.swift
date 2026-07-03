@@ -88,6 +88,9 @@ final class GameViewModel: ObservableObject {
             
             initializeCards(for: .l1)
             lightUpCards()
+            
+        case .quizRush:
+            break
         }
         
         // High-precision main timer tick at 20Hz (0.05 seconds interval)
