@@ -1,6 +1,7 @@
 import Foundation
 import SwiftUI
 import Combine
+import CoreLocation
 
 enum QuizViewState: Equatable {
     case loading
@@ -138,5 +139,14 @@ final class QuizViewModel: ObservableObject {
             isNewHighScore = false
         }
         hapticTrigger = .warning
+        
+        let lat = LocationManager.shared.lastLocation?.coordinate.latitude
+        let lon = LocationManager.shared.lastLocation?.coordinate.longitude
+        SessionHistoryManager.shared.saveSession(
+            mode: "Quiz Rush",
+            score: score,
+            latitude: lat,
+            longitude: lon
+        )
     }
 }

@@ -1,10 +1,9 @@
 import SwiftUI
+import Combine
 
 // Fallbacks in case shared files aren't compiled into this target yet
 #if canImport(SwiftUI)
 import Foundation
-
-enum GameMode: String, Codable { case tapFrenzy }
 
 @MainActor
 final class TapFrenzyVM: ObservableObject {
@@ -225,22 +224,34 @@ struct TapFrenzyView: View {
                                     .foregroundStyle(.secondary)
                             }
                             
-                            Button(action: {
-                                withAnimation {
-                                    vm.startGame()
+                            HStack(spacing: 16) {
+                                Button(action: {
+                                    withAnimation {
+                                        vm.startGame()
+                                    }
+                                }) {
+                                    Text("Play Again")
+                                        .font(.system(.headline, design: .rounded))
+                                        .bold()
+                                        .foregroundStyle(.white)
+                                        .padding(.vertical, 12)
+                                        .padding(.horizontal, 28)
+                                        .background(
+                                            LinearGradient(colors: [.blue, .purple], startPoint: .leading, endPoint: .trailing)
+                                        )
+                                        .clipShape(Capsule())
+                                        .shadow(color: .blue.opacity(0.3), radius: 8, x: 0, y: 4)
                                 }
-                            }) {
-                                Text("Play Again")
-                                    .font(.system(.headline, design: .rounded))
-                                    .bold()
-                                    .foregroundStyle(.white)
-                                    .padding(.vertical, 12)
-                                    .padding(.horizontal, 36)
-                                    .background(
-                                        LinearGradient(colors: [.blue, .purple], startPoint: .leading, endPoint: .trailing)
-                                    )
-                                    .clipShape(Capsule())
-                                    .shadow(color: .blue.opacity(0.3), radius: 8, x: 0, y: 4)
+                                
+                                ShareLink(item: "I just scored \(vm.tapCount) on Tap Frenzy — beat that!") {
+                                    Label("", systemImage: "square.and.arrow.up")
+                                        .font(.system(.headline, design: .rounded))
+                                        .bold()
+                                        .foregroundStyle(.primary)
+                                        .padding(.all, 12)
+                                        .background(Color(.systemGray5))
+                                        .clipShape(Circle())
+                                }
                             }
                         }
                         .frame(maxWidth: .infinity, maxHeight: .infinity)

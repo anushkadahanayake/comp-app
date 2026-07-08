@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		8632C97B2FFEC204006B850E /* PlayHubApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8632C97A2FFEC203006B850E /* PlayHubApp.swift */; };
+
 		863B62292FD964320088C895 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 863B62262FD964320088C895 /* Assets.xcassets */; };
 		863B622A2FD964320088C895 /* comp_iosApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B62272FD964320088C895 /* comp_iosApp.swift */; };
 		863B622B2FD964320088C895 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B62282FD964320088C895 /* ContentView.swift */; };
@@ -20,10 +20,15 @@
 		863B62612FD964320088C895 /* QuizViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B62602FD964320088C895 /* QuizViewModel.swift */; };
 		863B62632FD964320088C895 /* QuizRushView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B62622FD964320088C895 /* QuizRushView.swift */; };
 		863B62722FD967E00088C895 /* TriviaService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B62712FD967E00088C895 /* TriviaService.swift */; };
+		863B62762FD967E00088C895 /* GameSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B62752FD967E00088C895 /* GameSession.swift */; };
+		863B62782FD967E00088C895 /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B62772FD967E00088C895 /* LocationManager.swift */; };
+		863B627A2FD967E00088C895 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B62792FD967E00088C895 /* NotificationManager.swift */; };
+		863B627C2FD967E00088C895 /* StatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B627B2FD967E00088C895 /* StatsView.swift */; };
+		863B627E2FD967E00088C895 /* GameMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B627D2FD967E00088C895 /* GameMapView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		8632C97A2FFEC203006B850E /* PlayHubApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayHubApp.swift; sourceTree = "<group>"; };
+
 		863B62262FD964320088C895 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		863B62272FD964320088C895 /* comp_iosApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = comp_iosApp.swift; sourceTree = "<group>"; };
 		863B62282FD964320088C895 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -36,6 +41,11 @@
 		863B62602FD964320088C895 /* QuizViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizViewModel.swift; sourceTree = "<group>"; };
 		863B62622FD964320088C895 /* QuizRushView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizRushView.swift; sourceTree = "<group>"; };
 		863B62712FD967E00088C895 /* TriviaService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TriviaService.swift; sourceTree = "<group>"; };
+		863B62752FD967E00088C895 /* GameSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameSession.swift; sourceTree = "<group>"; };
+		863B62772FD967E00088C895 /* LocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationManager.swift; sourceTree = "<group>"; };
+		863B62792FD967E00088C895 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
+		863B627B2FD967E00088C895 /* StatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsView.swift; sourceTree = "<group>"; };
+		863B627D2FD967E00088C895 /* GameMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameMapView.swift; sourceTree = "<group>"; };
 		868946602FD95D1B005E1193 /* comp_ios.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = comp_ios.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -63,6 +73,7 @@
 			isa = PBXGroup;
 			children = (
 				863B62322FD969440088C895 /* GameState.swift */,
+				863B62752FD967E00088C895 /* GameSession.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -76,7 +87,9 @@
 				863B62522FD964320088C895 /* TapFrenzyView.swift */,
 				863B62542FD964320088C895 /* LightItUpView.swift */,
 				863B62622FD964320088C895 /* QuizRushView.swift */,
-				8632C97A2FFEC203006B850E /* PlayHubApp.swift */,
+
+				863B627B2FD967E00088C895 /* StatsView.swift */,
+				863B627D2FD967E00088C895 /* GameMapView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -85,6 +98,8 @@
 			isa = PBXGroup;
 			children = (
 				863B62712FD967E00088C895 /* TriviaService.swift */,
+				863B62772FD967E00088C895 /* LocationManager.swift */,
+				863B62792FD967E00088C895 /* NotificationManager.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -190,8 +205,13 @@
 				863B62612FD964320088C895 /* QuizViewModel.swift in Sources */,
 				863B62632FD964320088C895 /* QuizRushView.swift in Sources */,
 				863B62722FD967E00088C895 /* TriviaService.swift in Sources */,
+				863B62762FD967E00088C895 /* GameSession.swift in Sources */,
+				863B62782FD967E00088C895 /* LocationManager.swift in Sources */,
+				863B627A2FD967E00088C895 /* NotificationManager.swift in Sources */,
+				863B627C2FD967E00088C895 /* StatsView.swift in Sources */,
+				863B627E2FD967E00088C895 /* GameMapView.swift in Sources */,
 				863B62532FD964320088C895 /* TapFrenzyView.swift in Sources */,
-				8632C97B2FFEC204006B850E /* PlayHubApp.swift in Sources */,
+
 				863B62552FD964320088C895 /* LightItUpView.swift in Sources */,
 				863B62362FD96F210088C895 /* GameState.swift in Sources */,
 			);
@@ -332,6 +352,7 @@
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We use your location to map where you played your games and show your scores on the map.";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -363,6 +384,7 @@
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We use your location to map where you played your games and show your scores on the map.";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

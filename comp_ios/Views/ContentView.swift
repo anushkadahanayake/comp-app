@@ -1,16 +1,35 @@
-//
-//  ContentView.swift
-//  comp_ios
-//
-//  Created by ANUSHKA DAHANAYAKE on 2026-06-10.
-//
-
 import SwiftUI
 
 struct ContentView: View {
     var body: some View {
-        NavigationStack {
-            HomeView()
+        TabView {
+            NavigationStack {
+                HomeView()
+            }
+            .tabItem {
+                Label("Home", systemImage: "house.fill")
+            }
+            
+            NavigationStack {
+                StatsView()
+            }
+            .tabItem {
+                Label("Stats", systemImage: "chart.bar.fill")
+            }
+            
+            NavigationStack {
+                GameMapView()
+            }
+            .tabItem {
+                Label("Map", systemImage: "map.fill")
+            }
+            
+            NavigationStack {
+                SettingsView()
+            }
+            .tabItem {
+                Label("Settings", systemImage: "gearshape.fill")
+            }
         }
     }
 }

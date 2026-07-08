@@ -5,8 +5,6 @@ struct HomeView: View {
     @AppStorage("HighScore_TapFrenzy") private var highScoreTapFrenzy: Int = 0
     @AppStorage("HighScore_LightItUp") private var highScoreLightItUp: Int = 0
     @AppStorage("HighScore_QuizRush") private var highScoreQuizRush: Int = 0
-    @State private var isShowingSettings = false
-    
     // States for entrance animations
     @State private var animateHeader = false
     @State private var animateCard1 = false
@@ -232,20 +230,6 @@ struct HomeView: View {
                 Spacer()
             }
             .padding()
-        }
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button(action: {
-                    isShowingSettings = true
-                }) {
-                    Image(systemName: "gearshape.fill")
-                        .font(.system(.headline, design: .rounded))
-                        .foregroundStyle(.primary)
-                }
-            }
-        }
-        .sheet(isPresented: $isShowingSettings) {
-            SettingsView()
         }
         .onAppear {
             vm.resetGame()

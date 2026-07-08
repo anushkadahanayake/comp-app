@@ -9,6 +9,7 @@ import Foundation
 import Combine
 import CoreGraphics
 import SwiftUI
+import CoreLocation
 
 final class GameViewModel: ObservableObject {
     @Published var state: GameState = .idle
@@ -157,6 +158,15 @@ final class GameViewModel: ObservableObject {
         cards.removeAll()
         
         hapticTrigger = .warning
+        
+        let lat = LocationManager.shared.lastLocation?.coordinate.latitude
+        let lon = LocationManager.shared.lastLocation?.coordinate.longitude
+        SessionHistoryManager.shared.saveSession(
+            mode: currentMode.rawValue,
+            score: tapCount,
+            latitude: lat,
+            longitude: lon
+        )
     }
 
     private func initializeCards(for level: Level) {
