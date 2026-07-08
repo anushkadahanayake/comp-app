@@ -1,7 +1,76 @@
 import SwiftUI
 
+// Fallbacks in case shared files aren't compiled into this target yet
+#if canImport(SwiftUI)
+import Foundation
+
+enum GameMode: String, Codable { case tapFrenzy }
+
+@MainActor
+final class TapFrenzyVM: ObservableObject {
+    enum State { case idle, running, finished }
+    enum ButtonMode { case normal, bonus, penalty }
+    enum HapticTrigger { case success, error, warning, medium, light }
+
+    @Published var state: State = .idle
+    @Published var tapCount: Int = 0
+    @Published var timeLeft: Double = 10.0
+    @Published var buttonScale: CGFloat = 1.0
+    @Published var buttonOffset: CGSize = .zero
+    @Published var isDoublePointsActive: Bool = false
+    @Published var multiplier: Int = 1
+    @Published var isNewHighScore: Bool = false
+    @Published var hapticTrigger: HapticTrigger? = nil
+
+    var buttonMode: ButtonMode = .normal
+    var currentMode: GameMode = .tapFrenzy
+
+    private var timer: Timer?
+
+    func startGame() {
+        tapCount = 0
+        timeLeft = 10.0
+        multiplier = 1
+        isDoublePointsActive = false
+        buttonScale = 1.0
+        buttonOffset = .zero
+        isNewHighScore = false
+        state = .running
+        startTimer()
+    }
+
+    func resetGame() {
+        state = .idle
+        timeLeft = 10.0
+        tapCount = 0
+    }
+
+    func tapButton() {
+        guard state == .running else { return }
+        tapCount += 1 * multiplier
+        buttonScale = 0.9
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) { [weak self] in
+            self?.buttonScale = 1.0
+        }
+    }
+
+    private func startTimer() {
+        timer?.invalidate()
+        timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] t in
+            guard let self else { return }
+            if self.state != .running { t.invalidate(); return }
+            self.timeLeft = max(0, self.timeLeft - 0.1)
+            if self.timeLeft <= 0 {
+                t.invalidate()
+                self.state = .finished
+            }
+        }
+    }
+}
+#endif
+
 struct TapFrenzyView: View {
-    @StateObject private var vm = GameViewModel()
+    @StateObject private var vm = TapFrenzyVM()
     @AppStorage("HighScore_TapFrenzy") private var highScoreTapFrenzy: Int = 0
     @Environment(\.dismiss) private var dismiss
     
@@ -242,17 +311,26 @@ struct TapFrenzyView: View {
         }
         .navigationTitle("Tap Frenzy")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button("Close") {
+                    dismiss()
+                }
+            }
+        }
         .onAppear {
-            vm.currentMode = .tapFrenzy
+            vm.currentMode = GameMode.tapFrenzy
             vm.resetGame()
         }
         .onChange(of: vm.state) { newState in
             if newState == .finished {
-                if vm.tapCount > highScoreTapFrenzy {
-                    highScoreTapFrenzy = vm.tapCount
-                    vm.isNewHighScore = true
-                } else {
-                    vm.isNewHighScore = false
+                DispatchQueue.main.async {
+                    if vm.tapCount > highScoreTapFrenzy {
+                        highScoreTapFrenzy = vm.tapCount
+                        vm.isNewHighScore = true
+                    } else {
+                        vm.isNewHighScore = false
+                    }
                 }
             }
         }
@@ -270,7 +348,9 @@ struct TapFrenzyView: View {
             case .light:
                 triggerHapticFeedback(style: .light)
             }
-            vm.hapticTrigger = nil
+            DispatchQueue.main.async {
+                vm.hapticTrigger = nil
+            }
         }
     }
 
@@ -283,13 +363,13 @@ struct TapFrenzyView: View {
         return CGSize(width: clampedW, height: clampedH)
     }
 
-    private func triggerHapticFeedback(style: UIImpactFeedbackGenerator.FeedbackStyle) {
+    @MainActor private func triggerHapticFeedback(style: UIImpactFeedbackGenerator.FeedbackStyle) {
         let generator = UIImpactFeedbackGenerator(style: style)
         generator.prepare()
         generator.impactOccurred()
     }
 
-    private func triggerNotificationFeedback(type: UINotificationFeedbackGenerator.FeedbackType) {
+    @MainActor private func triggerNotificationFeedback(type: UINotificationFeedbackGenerator.FeedbackType) {
         let generator = UINotificationFeedbackGenerator()
         generator.prepare()
         generator.notificationOccurred(type)
