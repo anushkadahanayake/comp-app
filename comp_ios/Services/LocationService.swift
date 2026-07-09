@@ -2,8 +2,8 @@ import Foundation
 import CoreLocation
 import Combine
 
-final class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
-    static let shared = LocationManager()
+final class LocationService: NSObject, ObservableObject, CLLocationManagerDelegate {
+    static let shared = LocationService()
     
     private let manager = CLLocationManager()
     @Published var lastLocation: CLLocation?

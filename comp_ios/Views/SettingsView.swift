@@ -12,7 +12,7 @@ struct SettingsView: View {
     @AppStorage("HighScore_LightItUp") private var highScoreLightItUp: Int = 0
     @AppStorage("HighScore_QuizRush") private var highScoreQuizRush: Int = 0
     
-    @ObservedObject var notifications = NotificationManager.shared
+    @ObservedObject var notifications = NotificationService.shared
     @State private var showResetConfirmation = false
     
     // Helper property to work with Date in DatePicker and AppStorage

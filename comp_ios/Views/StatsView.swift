@@ -123,7 +123,7 @@ struct StatsView: View {
                                         Text(session.mode)
                                             .font(.system(.headline, design: .rounded))
                                             .bold()
-                                        Text(formatDate(session.date))
+                                        Text(formatDate(session.timestamp))
                                             .font(.system(.caption, design: .rounded))
                                             .foregroundStyle(.secondary)
                                     }

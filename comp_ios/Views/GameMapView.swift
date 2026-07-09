@@ -1,19 +1,28 @@
 import SwiftUI
 import MapKit
 
-struct MapPinItem: Identifiable {
+struct MapPinItem: Identifiable, Hashable {
     let id: UUID
     let coordinate: CLLocationCoordinate2D
     let title: String
     let subtitle: String
     let mode: String
+    
+    static func == (lhs: MapPinItem, rhs: MapPinItem) -> Bool {
+        lhs.id == rhs.id
+    }
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
 }
 
 struct GameMapView: View {
     @ObservedObject var historyManager = SessionHistoryManager.shared
-    @ObservedObject var locationManager = LocationManager.shared
+    @ObservedObject var locationService = LocationService.shared
     
     @State private var position: MapCameraPosition = .automatic
+    @State private var selectedPinId: UUID?
     @State private var selectedPin: MapPinItem?
     
     // Map items from completed sessions
@@ -32,21 +41,12 @@ struct GameMapView: View {
     
     var body: some View {
         ZStack {
-            Map(position: $position) {
-                // Pins for each played session
+            Map(position: $position, selection: $selectedPinId) {
+                // Pins for each played session using standard MapKit Markers
                 ForEach(pins) { pin in
-                    Annotation(pin.title, coordinate: pin.coordinate) {
-                        Image(systemName: modeIcon(pin.mode))
-                            .font(.subheadline)
-                            .foregroundStyle(.white)
-                            .padding(.all, 8)
-                            .background(modeColor(pin.mode))
-                            .clipShape(Circle())
-                            .shadow(color: .black.opacity(0.15), radius: 3)
-                            .onTapGesture {
-                                selectedPin = pin
-                            }
-                    }
+                    Marker(pin.title, coordinate: pin.coordinate)
+                        .tint(modeColor(pin.mode))
+                        .tag(pin.id)
                 }
                 
                 // Show user location dot if authorized
@@ -75,6 +75,7 @@ struct GameMapView: View {
                         Spacer()
                         
                         Button(action: {
+                            selectedPinId = nil
                             selectedPin = nil
                         }) {
                             Image(systemName: "xmark.circle.fill")
@@ -92,8 +93,10 @@ struct GameMapView: View {
             }
         }
         .navigationTitle("Map of Games")
-        .onAppear {
-            locationManager.requestPermission()
+        .onChange(of: selectedPinId) { newId in
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
+                selectedPin = pins.first(where: { $0.id == newId })
+            }
         }
     }
     
@@ -103,15 +106,6 @@ struct GameMapView: View {
         case "Light It Up": return .orange
         case "Quiz Rush": return .purple
         default: return .red
-        }
-    }
-    
-    private func modeIcon(_ mode: String) -> String {
-        switch mode {
-        case "Tap Frenzy": return "bolt.fill"
-        case "Light It Up": return "lightbulb.fill"
-        case "Quiz Rush": return "questionmark.bubble.fill"
-        default: return "gamecontroller.fill"
         }
     }
 }

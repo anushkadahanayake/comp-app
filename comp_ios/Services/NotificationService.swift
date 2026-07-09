@@ -2,8 +2,8 @@ import Foundation
 import UserNotifications
 import Combine
 
-final class NotificationManager: ObservableObject {
-    static let shared = NotificationManager()
+final class NotificationService: ObservableObject {
+    static let shared = NotificationService()
     
     @Published var isAuthorized = false
     

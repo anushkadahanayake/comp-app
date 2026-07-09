@@ -5,7 +5,7 @@ struct GameSession: Codable, Identifiable {
     let id: UUID
     let mode: String // "Tap Frenzy", "Light It Up", "Quiz Rush"
     let score: Int
-    let date: Date
+    let timestamp: Date
     let latitude: Double?
     let longitude: Double?
 }
@@ -24,7 +24,7 @@ final class SessionHistoryManager: ObservableObject {
             id: UUID(),
             mode: mode,
             score: score,
-            date: Date(),
+            timestamp: Date(),
             latitude: latitude,
             longitude: longitude
         )

@@ -21,8 +21,8 @@
 		863B62632FD964320088C895 /* QuizRushView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B62622FD964320088C895 /* QuizRushView.swift */; };
 		863B62722FD967E00088C895 /* TriviaService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B62712FD967E00088C895 /* TriviaService.swift */; };
 		863B62762FD967E00088C895 /* GameSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B62752FD967E00088C895 /* GameSession.swift */; };
-		863B62782FD967E00088C895 /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B62772FD967E00088C895 /* LocationManager.swift */; };
-		863B627A2FD967E00088C895 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B62792FD967E00088C895 /* NotificationManager.swift */; };
+		863B62782FD967E00088C895 /* LocationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B62772FD967E00088C895 /* LocationService.swift */; };
+		863B627A2FD967E00088C895 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B62792FD967E00088C895 /* NotificationService.swift */; };
 		863B627C2FD967E00088C895 /* StatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B627B2FD967E00088C895 /* StatsView.swift */; };
 		863B627E2FD967E00088C895 /* GameMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B627D2FD967E00088C895 /* GameMapView.swift */; };
 /* End PBXBuildFile section */
@@ -42,8 +42,8 @@
 		863B62622FD964320088C895 /* QuizRushView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizRushView.swift; sourceTree = "<group>"; };
 		863B62712FD967E00088C895 /* TriviaService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TriviaService.swift; sourceTree = "<group>"; };
 		863B62752FD967E00088C895 /* GameSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameSession.swift; sourceTree = "<group>"; };
-		863B62772FD967E00088C895 /* LocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationManager.swift; sourceTree = "<group>"; };
-		863B62792FD967E00088C895 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
+		863B62772FD967E00088C895 /* LocationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationService.swift; sourceTree = "<group>"; };
+		863B62792FD967E00088C895 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 		863B627B2FD967E00088C895 /* StatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsView.swift; sourceTree = "<group>"; };
 		863B627D2FD967E00088C895 /* GameMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameMapView.swift; sourceTree = "<group>"; };
 		868946602FD95D1B005E1193 /* comp_ios.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = comp_ios.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -98,8 +98,8 @@
 			isa = PBXGroup;
 			children = (
 				863B62712FD967E00088C895 /* TriviaService.swift */,
-				863B62772FD967E00088C895 /* LocationManager.swift */,
-				863B62792FD967E00088C895 /* NotificationManager.swift */,
+				863B62772FD967E00088C895 /* LocationService.swift */,
+				863B62792FD967E00088C895 /* NotificationService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -206,8 +206,8 @@
 				863B62632FD964320088C895 /* QuizRushView.swift in Sources */,
 				863B62722FD967E00088C895 /* TriviaService.swift in Sources */,
 				863B62762FD967E00088C895 /* GameSession.swift in Sources */,
-				863B62782FD967E00088C895 /* LocationManager.swift in Sources */,
-				863B627A2FD967E00088C895 /* NotificationManager.swift in Sources */,
+				863B62782FD967E00088C895 /* LocationService.swift in Sources */,
+				863B627A2FD967E00088C895 /* NotificationService.swift in Sources */,
 				863B627C2FD967E00088C895 /* StatsView.swift in Sources */,
 				863B627E2FD967E00088C895 /* GameMapView.swift in Sources */,
 				863B62532FD964320088C895 /* TapFrenzyView.swift in Sources */,

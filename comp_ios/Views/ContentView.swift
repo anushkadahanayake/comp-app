@@ -7,29 +7,33 @@ struct ContentView: View {
                 HomeView()
             }
             .tabItem {
-                Label("Home", systemImage: "house.fill")
+                Label("Home", systemImage: "gamecontroller")
             }
             
             NavigationStack {
                 StatsView()
             }
             .tabItem {
-                Label("Stats", systemImage: "chart.bar.fill")
+                Label("Stats", systemImage: "chart.bar")
             }
             
             NavigationStack {
                 GameMapView()
             }
             .tabItem {
-                Label("Map", systemImage: "map.fill")
+                Label("Map", systemImage: "map")
             }
             
             NavigationStack {
                 SettingsView()
             }
             .tabItem {
-                Label("Settings", systemImage: "gearshape.fill")
+                Label("Settings", systemImage: "gear")
             }
+        }
+        .onAppear {
+            // Request location permission immediately on app launch
+            LocationService.shared.requestPermission()
         }
     }
 }

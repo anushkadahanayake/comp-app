@@ -159,8 +159,8 @@ final class GameViewModel: ObservableObject {
         
         hapticTrigger = .warning
         
-        let lat = LocationManager.shared.lastLocation?.coordinate.latitude
-        let lon = LocationManager.shared.lastLocation?.coordinate.longitude
+        let lat = LocationService.shared.lastLocation?.coordinate.latitude
+        let lon = LocationService.shared.lastLocation?.coordinate.longitude
         SessionHistoryManager.shared.saveSession(
             mode: currentMode.rawValue,
             score: tapCount,
