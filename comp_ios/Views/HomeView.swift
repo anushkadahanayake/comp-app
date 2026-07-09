@@ -16,8 +16,8 @@ struct HomeView: View {
         ZStack {
             // Premium fluid animated background
             ZStack {
-                FluidBackgroundView()
-                FloatingParticlesView()
+                LavaPlasmaBackgroundView()
+                EmberSparklesView()
             }
             .ignoresSafeArea()
             
@@ -290,82 +290,140 @@ struct HomeView: View {
     }
 }
 
-// MARK: - Fluid Aurora Background View
-struct FluidBackgroundView: View {
-    @State private var animate = false
+// MARK: - Lava Plasma Background View
+struct LavaPlasmaBackgroundView: View {
+    @State private var animateBlob1 = false
+    @State private var animateBlob2 = false
+    @State private var animateBlob3 = false
+    @State private var animateBlob4 = false
     
     var body: some View {
         ZStack {
-            Color(red: 0.03, green: 0.03, blue: 0.07)
+            Color(red: 0.02, green: 0.01, blue: 0.04)
                 .ignoresSafeArea()
             
             ZStack {
-                // Blob 1 (Blue)
+                // Blob 1: Deep Red
                 Circle()
-                    .fill(Color.blue.opacity(0.20))
-                    .frame(width: 320, height: 320)
-                    .offset(x: animate ? -60 : 60, y: animate ? -90 : 90)
+                    .fill(Color(red: 0.75, green: 0.05, blue: 0.05).opacity(0.42))
+                    .frame(width: 360, height: 360)
+                    .offset(x: animateBlob1 ? -70 : 70, y: animateBlob1 ? -110 : 110)
+                    .scaleEffect(animateBlob1 ? 1.12 : 0.88)
                     .blur(radius: 60)
                 
-                // Blob 2 (Cyan)
+                // Blob 2: Lava Orange
                 Circle()
-                    .fill(Color.cyan.opacity(0.18))
-                    .frame(width: 280, height: 280)
-                    .offset(x: animate ? 80 : -80, y: animate ? 100 : -100)
+                    .fill(Color(red: 0.95, green: 0.3, blue: 0.0).opacity(0.38))
+                    .frame(width: 320, height: 320)
+                    .offset(x: animateBlob2 ? 80 : -80, y: animateBlob2 ? 60 : -60)
+                    .scaleEffect(animateBlob2 ? 0.92 : 1.15)
                     .blur(radius: 50)
                 
-                // Blob 3 (Purple/Lavender)
+                // Blob 3: Golden Flame
                 Circle()
-                    .fill(Color.purple.opacity(0.15))
-                    .frame(width: 240, height: 240)
-                    .offset(x: animate ? -100 : 100, y: animate ? 60 : -60)
+                    .fill(Color(red: 0.95, green: 0.65, blue: 0.0).opacity(0.28))
+                    .frame(width: 270, height: 270)
+                    .offset(x: animateBlob3 ? -90 : 90, y: animateBlob3 ? 70 : -70)
+                    .scaleEffect(animateBlob3 ? 1.2 : 0.85)
                     .blur(radius: 45)
+                
+                // Blob 4: Hot Magenta
+                Circle()
+                    .fill(Color(red: 0.85, green: 0.0, blue: 0.45).opacity(0.22))
+                    .frame(width: 240, height: 240)
+                    .offset(x: animateBlob4 ? 50 : -50, y: animateBlob4 ? -90 : 90)
+                    .scaleEffect(animateBlob4 ? 0.88 : 1.08)
+                    .blur(radius: 40)
             }
             .onAppear {
-                withAnimation(
-                    .easeInOut(duration: 8.0)
-                    .repeatForever(autoreverses: true)
-                ) {
-                    animate.toggle()
+                withAnimation(.easeInOut(duration: 8.0).repeatForever(autoreverses: true)) {
+                    animateBlob1.toggle()
+                }
+                withAnimation(.easeInOut(duration: 6.5).repeatForever(autoreverses: true)) {
+                    animateBlob2.toggle()
+                }
+                withAnimation(.easeInOut(duration: 9.0).repeatForever(autoreverses: true)) {
+                    animateBlob3.toggle()
+                }
+                withAnimation(.easeInOut(duration: 5.5).repeatForever(autoreverses: true)) {
+                    animateBlob4.toggle()
                 }
             }
         }
     }
 }
 
-// MARK: - Floating Particles Background View
-struct FloatingParticlesView: View {
-    @State private var animate = false
-    
-    private let particleCoordinates: [CGPoint] = (0..<18).map { _ in
-        CGPoint(
-            x: CGFloat.random(in: 20...370),
-            y: CGFloat.random(in: 80...720)
+// MARK: - Ember Sparkles View
+struct EmberSparklesView: View {
+    private let particles = (0..<24).map { _ in
+        Ember(
+            id: UUID(),
+            x: CGFloat.random(in: 10...380),
+            size: CGFloat.random(in: 3...7),
+            speed: Double.random(in: 6.0...12.0),
+            delay: Double.random(in: 0.0...4.0)
         )
     }
     
     var body: some View {
         GeometryReader { proxy in
             ZStack {
-                ForEach(0..<18, id: \.self) { index in
-                    Circle()
-                        .fill(index % 2 == 0 ? Color.cyan.opacity(0.12) : Color.purple.opacity(0.12))
-                        .frame(width: CGFloat.random(in: 8...18))
-                        .blur(radius: 1.0)
-                        .position(particleCoordinates[index])
-                        .offset(y: animate ? -250 : 250)
-                        .opacity(animate ? 0.0 : 0.85)
-                }
-            }
-            .onAppear {
-                withAnimation(
-                    .linear(duration: Double.random(in: 12.0...18.0))
-                    .repeatForever(autoreverses: false)
-                ) {
-                    animate.toggle()
+                ForEach(particles) { ember in
+                    EmberItemView(ember: ember, containerHeight: proxy.size.height)
                 }
             }
         }
+        .ignoresSafeArea()
+    }
+}
+
+struct Ember: Identifiable {
+    let id: UUID
+    let x: CGFloat
+    let size: CGFloat
+    let speed: Double
+    let delay: Double
+}
+
+struct EmberItemView: View {
+    let ember: Ember
+    let containerHeight: CGFloat
+    
+    @State private var offset: CGFloat = 0
+    @State private var opacity: Double = 0.85
+    @State private var sway: CGFloat = 0
+    
+    var body: some View {
+        Circle()
+            .fill(
+                RadialGradient(
+                    colors: [Color(red: 1.0, green: 0.65, blue: 0.1), Color(red: 0.95, green: 0.2, blue: 0.0), .clear],
+                    center: .center,
+                    startRadius: 0,
+                    endRadius: ember.size
+                )
+            )
+            .frame(width: ember.size * 2, height: ember.size * 2)
+            .position(x: ember.x + sway, y: containerHeight + 20 - offset)
+            .opacity(opacity)
+            .onAppear {
+                withAnimation(
+                    .linear(duration: ember.speed)
+                    .repeatForever(autoreverses: false)
+                    .delay(ember.delay)
+                ) {
+                    offset = containerHeight + 100
+                    opacity = 0.0
+                }
+                
+                withAnimation(
+                    .easeInOut(duration: Double.random(in: 2.0...4.0))
+                    .repeatForever(autoreverses: true)
+                    .delay(ember.delay)
+                ) {
+                    sway = CGFloat.random(in: -25...25)
+                }
+            }
     }
 }
 

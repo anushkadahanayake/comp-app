@@ -2,84 +2,6 @@ import SwiftUI
 import Combine
 import CoreLocation
 
-// Fallbacks in case shared files aren't compiled into this target yet
-#if canImport(SwiftUI)
-import Foundation
-
-@MainActor
-final class TapFrenzyVM: ObservableObject {
-    enum State { case idle, running, finished }
-    enum ButtonMode { case normal, bonus, penalty }
-    enum HapticTrigger { case success, error, warning, medium, light }
-
-    @Published var state: State = .idle
-    @Published var tapCount: Int = 0
-    @Published var timeLeft: Double = 10.0
-    @Published var buttonScale: CGFloat = 1.0
-    @Published var buttonOffset: CGSize = .zero
-    @Published var isDoublePointsActive: Bool = false
-    @Published var multiplier: Int = 1
-    @Published var isNewHighScore: Bool = false
-    @Published var hapticTrigger: HapticTrigger? = nil
-
-    var buttonMode: ButtonMode = .normal
-    var currentMode: GameMode = .tapFrenzy
-
-    private var timer: Timer?
-
-    func startGame() {
-        tapCount = 0
-        timeLeft = 10.0
-        multiplier = 1
-        isDoublePointsActive = false
-        buttonScale = 1.0
-        buttonOffset = .zero
-        isNewHighScore = false
-        state = .running
-        startTimer()
-    }
-
-    func resetGame() {
-        state = .idle
-        timeLeft = 10.0
-        tapCount = 0
-    }
-
-    func tapButton() {
-        guard state == .running else { return }
-        tapCount += 1 * multiplier
-        buttonScale = 0.88
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
-            self?.buttonScale = 1.0
-        }
-    }
-
-    private func startTimer() {
-        timer?.invalidate()
-        timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] t in
-            Task { @MainActor in
-                guard let self = self else { t.invalidate(); return }
-                if self.state != .running { t.invalidate(); return }
-                self.timeLeft = max(0, self.timeLeft - 0.1)
-                if self.timeLeft <= 0 {
-                    t.invalidate()
-                    self.state = .finished
-                    
-                    let lat = LocationService.shared.lastLocation?.coordinate.latitude
-                    let lon = LocationService.shared.lastLocation?.coordinate.longitude
-                    SessionHistoryManager.shared.saveSession(
-                        mode: "Tap Frenzy",
-                        score: self.tapCount,
-                        latitude: lat,
-                        longitude: lon
-                    )
-                }
-            }
-        }
-    }
-}
-#endif
-
 struct FloatingScore: Identifiable {
     let id: UUID
     let text: String
@@ -89,12 +11,13 @@ struct FloatingScore: Identifiable {
 }
 
 struct TapFrenzyView: View {
-    @StateObject private var vm = TapFrenzyVM()
+    @StateObject private var vm = GameViewModel()
     @AppStorage("HighScore_TapFrenzy") private var highScoreTapFrenzy: Int = 0
     @Environment(\.dismiss) private var dismiss
     
     @State private var floatingScores: [FloatingScore] = []
     @State private var pulseOuterRing = false
+    @State private var tapScaleEffect: CGFloat = 1.0
     
     var body: some View {
         GeometryReader { proxy in
@@ -188,9 +111,9 @@ struct TapFrenzyView: View {
                             .fill(Color(red: 0.05, green: 0.05, blue: 0.10).opacity(0.85))
                             .overlay(
                                 RoundedRectangle(cornerRadius: 24, style: .continuous)
-                                    .stroke(vm.buttonMode == .penalty ? Color.red.opacity(0.5) : Color.white.opacity(0.12), lineWidth: 1.5)
+                                    .stroke(vm.buttonMode == .penalty ? Color.gray.opacity(0.5) : Color.white.opacity(0.12), lineWidth: 1.5)
                             )
-                            .shadow(color: (vm.buttonMode == .penalty ? Color.red : Color.cyan).opacity(0.05), radius: 10)
+                            .shadow(color: (vm.buttonMode == .penalty ? Color.gray : Color.cyan).opacity(0.05), radius: 10)
 
                         // Target button core
                         if vm.state == .running || vm.state == .finished {
@@ -198,7 +121,7 @@ struct TapFrenzyView: View {
                                 switch vm.buttonMode {
                                 case .normal: return .cyan
                                 case .bonus: return .green
-                                case .penalty: return .red
+                                case .penalty: return .gray
                                 }
                             }()
                             
@@ -208,55 +131,75 @@ struct TapFrenzyView: View {
                                 startRadius: 10,
                                 endRadius: 90
                             )
+                            
+                            let combinedButtonScale = vm.buttonScale * tapScaleEffect
 
                             ZStack {
                                 // Breathing Glow Outer Ring
                                 Circle()
                                     .stroke(baseColor.opacity(0.4), lineWidth: 3)
-                                    .frame(width: 175 * vm.buttonScale, height: 175 * vm.buttonScale)
+                                    .frame(width: 175 * combinedButtonScale, height: 175 * combinedButtonScale)
                                     .scaleEffect(pulseOuterRing ? 1.08 : 0.96)
                                     .shadow(color: baseColor.opacity(0.6), radius: 15)
                                 
                                 // Center Glowing Button
                                 Button(action: {
-                                    withAnimation(.spring(response: 0.18, dampingFraction: 0.55)) {
-                                        vm.tapButton()
-                                        // Spawning floating score particles
-                                        let scoreText: String = {
-                                            switch vm.buttonMode {
-                                            case .normal: return "+\(1 * vm.multiplier)"
-                                            case .bonus: return "+\(3 * vm.multiplier)"
-                                            case .penalty: return "-2"
-                                            }
-                                        }()
-                                        let scoreColor: Color = {
-                                            switch vm.buttonMode {
-                                            case .normal: return .cyan
-                                            case .bonus: return .green
-                                            case .penalty: return .red
-                                            }
-                                        }()
-                                        let newScore = FloatingScore(
-                                            id: UUID(),
-                                            text: scoreText,
-                                            x: CGFloat.random(in: -40...40),
-                                            y: CGFloat.random(in: -40...40),
-                                            color: scoreColor
-                                        )
-                                        floatingScores.append(newScore)
-                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-                                            floatingScores.removeAll(where: { $0.id == newScore.id })
+                                    withAnimation(.spring(response: 0.15, dampingFraction: 0.4)) {
+                                        tapScaleEffect = 0.85
+                                    }
+                                    
+                                    vm.tapButton()
+                                    
+                                    // Spawning floating score particles
+                                    let scoreText: String = {
+                                        if vm.buttonMode == .penalty {
+                                            return "-5"
                                         }
+                                        var pts = vm.multiplier
+                                        if vm.buttonMode == .bonus {
+                                            pts += 1
+                                        }
+                                        if vm.isDoublePointsActive {
+                                            pts *= 2
+                                        }
+                                        return "+\(pts)"
+                                    }()
+                                    
+                                    let scoreColor: Color = {
+                                        switch vm.buttonMode {
+                                        case .normal: return .cyan
+                                        case .bonus: return .green
+                                        case .penalty: return .gray
+                                        }
+                                    }()
+                                    
+                                    let newScore = FloatingScore(
+                                        id: UUID(),
+                                        text: scoreText,
+                                        x: CGFloat.random(in: -40...40),
+                                        y: CGFloat.random(in: -40...40),
+                                        color: scoreColor
+                                    )
+                                    floatingScores.append(newScore)
+                                    
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                        withAnimation(.spring(response: 0.2, dampingFraction: 0.5)) {
+                                            tapScaleEffect = 1.0
+                                        }
+                                    }
+                                    
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                                        floatingScores.removeAll(where: { $0.id == newScore.id })
                                     }
                                 }) {
                                     ZStack {
                                         Circle()
                                             .fill(gradient)
-                                            .frame(width: 140 * vm.buttonScale, height: 140 * vm.buttonScale)
+                                            .frame(width: 140 * combinedButtonScale, height: 140 * combinedButtonScale)
                                         
                                         Circle()
                                             .stroke(baseColor, lineWidth: 2)
-                                            .frame(width: 140 * vm.buttonScale, height: 140 * vm.buttonScale)
+                                            .frame(width: 140 * combinedButtonScale, height: 140 * combinedButtonScale)
                                         
                                         Image(systemName: vm.buttonMode == .penalty ? "exclamationmark.triangle.fill" : (vm.buttonMode == .bonus ? "plus.circle.fill" : "bolt.fill"))
                                             .font(.title)
@@ -267,9 +210,8 @@ struct TapFrenzyView: View {
                                 .disabled(vm.state == .finished)
                                 .opacity(vm.state == .finished ? 0.15 : 1.0)
                             }
-                            .offset(clampedOffset(for: vm.buttonOffset, containerSize: CGSize(width: proxy.size.width - 32, height: 320), buttonScale: vm.buttonScale))
+                            .offset(clampedOffset(for: vm.buttonOffset, containerSize: CGSize(width: proxy.size.width - 32, height: 320), buttonScale: combinedButtonScale))
                             .animation(.spring(response: 0.38, dampingFraction: 0.7), value: vm.buttonOffset)
-                            .animation(.easeInOut(duration: 0.15), value: vm.buttonScale)
                         }
                         
                         // Floating score particles container
