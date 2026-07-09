@@ -23,8 +23,7 @@ struct LightItUpView: View {
     
     var body: some View {
         ZStack {
-            // Dark Neon Background
-            Color(red: 0.03, green: 0.03, blue: 0.07)
+            LevelMatchingAuroraBackground(level: vm.currentLevel)
                 .ignoresSafeArea()
             
             VStack(spacing: 24) {
@@ -459,5 +458,55 @@ struct LightItUpView: View {
 #Preview {
     NavigationStack {
         LightItUpView()
+    }
+}
+
+// MARK: - Level Matching Aurora Background
+struct LevelMatchingAuroraBackground: View {
+    let level: Level
+    @State private var animate = false
+    
+    private var levelColor: Color {
+        switch level {
+        case .l1: return .cyan
+        case .l2: return .green
+        case .l3: return .purple
+        case .l4: return .orange
+        }
+    }
+    
+    private var secondaryColor: Color {
+        switch level {
+        case .l1: return .blue
+        case .l2: return .mint
+        case .l3: return .pink
+        case .l4: return .red
+        }
+    }
+    
+    var body: some View {
+        ZStack {
+            Color(red: 0.02, green: 0.01, blue: 0.04)
+                .ignoresSafeArea()
+            
+            ZStack {
+                Circle()
+                    .fill(levelColor.opacity(0.24))
+                    .frame(width: 320, height: 320)
+                    .offset(x: animate ? -50 : 50, y: animate ? -80 : 80)
+                    .blur(radius: 60)
+                
+                Circle()
+                    .fill(secondaryColor.opacity(0.20))
+                    .frame(width: 280, height: 280)
+                    .offset(x: animate ? 70 : -70, y: animate ? 70 : -70)
+                    .blur(radius: 50)
+            }
+            .onAppear {
+                withAnimation(.easeInOut(duration: 8.0).repeatForever(autoreverses: true)) {
+                    animate.toggle()
+                }
+            }
+        }
     }
 }

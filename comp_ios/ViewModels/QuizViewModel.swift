@@ -4,13 +4,48 @@ import Combine
 import CoreLocation
 
 enum QuizViewState: Equatable {
+    case idle
     case loading
     case loaded
     case failed(String)
 }
 
+enum TriviaCategory: String, CaseIterable, Identifiable {
+    case general = "General Knowledge"
+    case games = "Video Games"
+    case science = "Science & Nature"
+    case computers = "Computers"
+    case sports = "Sports"
+    case history = "History"
+    
+    var id: String { self.rawValue }
+    
+    var apiId: Int {
+        switch self {
+        case .general: return 9
+        case .games: return 15
+        case .science: return 17
+        case .computers: return 18
+        case .sports: return 21
+        case .history: return 23
+        }
+    }
+    
+    var icon: String {
+        switch self {
+        case .general: return "globe.americas.fill"
+        case .games: return "gamecontroller.fill"
+        case .science: return "atom"
+        case .computers: return "desktopcomputer"
+        case .sports: return "sportscourt.fill"
+        case .history: return "book.closed.fill"
+        }
+    }
+}
+
 final class QuizViewModel: ObservableObject {
-    @Published var viewState: QuizViewState = .loading
+    @Published var viewState: QuizViewState = .idle
+    @Published var selectedCategory: TriviaCategory = .general
     @Published var questions: [Question] = []
     @Published var index: Int = 0
     @Published var score: Int = 0
@@ -62,7 +97,8 @@ final class QuizViewModel: ObservableObject {
     }
     
     @MainActor
-    func load() async {
+    func load(category: TriviaCategory) async {
+        self.selectedCategory = category
         viewState = .loading
         score = 0
         streak = 0
@@ -74,7 +110,7 @@ final class QuizViewModel: ObservableObject {
         shuffledAnswersCache.removeAll()
         
         do {
-            let results = try await service.fetchQuestions()
+            let results = try await service.fetchQuestions(categoryId: category.apiId)
             self.questions = results
             self.viewState = .loaded
         } catch {
