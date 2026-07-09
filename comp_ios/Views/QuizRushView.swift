@@ -9,12 +9,14 @@ struct QuizRushView: View {
     
     var body: some View {
         ZStack {
-            // Dark Gaming Background
-            Color(red: 0.03, green: 0.03, blue: 0.07)
+            // Holographic Space Nebula Background
+            HolographicSpaceNebulaBackground()
                 .ignoresSafeArea()
             
             VStack {
                 switch vm.viewState {
+                case .idle:
+                    categorySelectionView
                 case .loading:
                     loadingView
                 case .failed(let message):
@@ -38,10 +40,7 @@ struct QuizRushView: View {
                 .foregroundStyle(.purple)
             }
         }
-        .task {
-            await vm.load()
-        }
-        .onChange(of: vm.index) { newIndex in
+        .onChange(of: vm.index) { _, newIndex in
             // Handle high score updates as soon as the user completes the 10th question
             if newIndex >= vm.questions.count && !vm.questions.isEmpty {
                 if vm.score > highScoreQuizRush {
@@ -52,7 +51,7 @@ struct QuizRushView: View {
                 }
             }
         }
-        .onChange(of: vm.streak) { newStreak in
+        .onChange(of: vm.streak) { _, newStreak in
             if newStreak > 0 {
                 withAnimation(.spring(response: 0.25, dampingFraction: 0.5)) {
                     scaleCombo = true
@@ -64,7 +63,7 @@ struct QuizRushView: View {
                 }
             }
         }
-        .onChange(of: vm.hapticTrigger) { trigger in
+        .onChange(of: vm.hapticTrigger) { _, trigger in
             guard let trigger = trigger else { return }
             switch trigger {
             case .success:
@@ -79,6 +78,77 @@ struct QuizRushView: View {
     }
     
     // MARK: - Subviews
+    private var categorySelectionView: some View {
+        VStack(spacing: 20) {
+            Spacer()
+            
+            Text("SELECT YOUR AREA")
+                .font(.system(.title3, design: .rounded))
+                .fontWeight(.black)
+                .foregroundStyle(.white)
+                .shadow(color: .purple.opacity(0.8), radius: 8)
+                .tracking(3)
+            
+            // Grid of categories
+            ScrollView(showsIndicators: false) {
+                LazyVGrid(columns: [GridItem(.flexible(), spacing: 16), GridItem(.flexible(), spacing: 16)], spacing: 16) {
+                    ForEach(TriviaCategory.allCases) { category in
+                        Button(action: {
+                            vm.selectedCategory = category
+                        }) {
+                            VStack(spacing: 12) {
+                                Image(systemName: category.icon)
+                                    .font(.title)
+                                    .foregroundStyle(vm.selectedCategory == category ? .white : .purple)
+                                
+                                Text(category.rawValue)
+                                    .font(.system(.subheadline, design: .rounded))
+                                    .fontWeight(.bold)
+                                    .foregroundStyle(.white)
+                                    .multilineTextAlignment(.center)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 100)
+                            .background(vm.selectedCategory == category ? Color.purple.opacity(0.3) : Color(red: 0.08, green: 0.08, blue: 0.16))
+                            .cornerRadius(18)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 18)
+                                    .stroke(vm.selectedCategory == category ? Color.purple : Color.white.opacity(0.12), lineWidth: 2)
+                            )
+                            .shadow(color: vm.selectedCategory == category ? .purple.opacity(0.3) : .clear, radius: 8)
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    }
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 8)
+            }
+            .frame(maxHeight: 340)
+            
+            // START button
+            Button(action: {
+                Task {
+                    await vm.load(category: vm.selectedCategory)
+                }
+            }) {
+                Text("START RUSH")
+                    .font(.system(.headline, design: .rounded))
+                    .fontWeight(.black)
+                    .foregroundStyle(.white)
+                    .padding(.vertical, 16)
+                    .padding(.horizontal, 48)
+                    .background(
+                        LinearGradient(colors: [.purple, .pink], startPoint: .leading, endPoint: .trailing)
+                    )
+                    .clipShape(Capsule())
+                    .shadow(color: .purple.opacity(0.4), radius: 12)
+            }
+            .padding(.top, 8)
+            
+            Spacer()
+        }
+    }
+    
     private var loadingView: some View {
         VStack(spacing: 20) {
             ProgressView()
@@ -109,22 +179,37 @@ struct QuizRushView: View {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 32)
             
-            Button(action: {
-                Task {
-                    await vm.load()
+            HStack(spacing: 16) {
+                Button(action: {
+                    Task {
+                        await vm.load(category: vm.selectedCategory)
+                    }
+                }) {
+                    Text("Retry")
+                        .font(.system(.headline, design: .rounded))
+                        .bold()
+                        .foregroundStyle(.white)
+                        .padding(.vertical, 14)
+                        .padding(.horizontal, 28)
+                        .background(
+                            LinearGradient(colors: [.orange, .yellow], startPoint: .leading, endPoint: .trailing)
+                        )
+                        .clipShape(Capsule())
+                        .shadow(color: .orange.opacity(0.3), radius: 10, x: 0, y: 5)
                 }
-            }) {
-                Text("Retry")
-                    .font(.system(.headline, design: .rounded))
-                    .bold()
-                    .foregroundStyle(.white)
-                    .padding(.vertical, 14)
-                    .padding(.horizontal, 48)
-                    .background(
-                        LinearGradient(colors: [.orange, .yellow], startPoint: .leading, endPoint: .trailing)
-                    )
-                    .clipShape(Capsule())
-                    .shadow(color: .orange.opacity(0.3), radius: 10, x: 0, y: 5)
+                
+                Button(action: {
+                    vm.viewState = .idle
+                }) {
+                    Text("Change Category")
+                        .font(.system(.headline, design: .rounded))
+                        .bold()
+                        .foregroundStyle(.white)
+                        .padding(.vertical, 14)
+                        .padding(.horizontal, 20)
+                        .background(Color(red: 0.12, green: 0.12, blue: 0.22))
+                        .clipShape(Capsule())
+                }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -323,33 +408,46 @@ struct QuizRushView: View {
                         .foregroundStyle(.secondary)
                 }
                 
-                HStack(spacing: 16) {
-                    Button(action: {
-                        Task {
-                            await vm.load()
+                VStack(spacing: 12) {
+                    HStack(spacing: 16) {
+                        Button(action: {
+                            Task {
+                                await vm.load(category: vm.selectedCategory)
+                            }
+                        }) {
+                            Text("Play Again")
+                                .font(.system(.headline, design: .rounded))
+                                .bold()
+                                .foregroundStyle(.white)
+                                .padding(.vertical, 12)
+                                .padding(.horizontal, 28)
+                                .background(
+                                    LinearGradient(colors: [.blue, .purple], startPoint: .leading, endPoint: .trailing)
+                                )
+                                .clipShape(Capsule())
+                                .shadow(color: .blue.opacity(0.4), radius: 8, x: 0, y: 4)
                         }
-                    }) {
-                        Text("Play Again")
-                            .font(.system(.headline, design: .rounded))
-                            .bold()
-                            .foregroundStyle(.white)
-                            .padding(.vertical, 12)
-                            .padding(.horizontal, 28)
-                            .background(
-                                LinearGradient(colors: [.blue, .purple], startPoint: .leading, endPoint: .trailing)
-                            )
-                            .clipShape(Capsule())
-                            .shadow(color: .blue.opacity(0.4), radius: 8, x: 0, y: 4)
+                        
+                        ShareLink(item: "I just scored \(vm.score) on Quiz Rush — beat that!") {
+                            Label("", systemImage: "square.and.arrow.up")
+                                .font(.system(.headline, design: .rounded))
+                                .bold()
+                                .foregroundStyle(.white)
+                                .padding(.all, 12)
+                                .background(Color(red: 0.12, green: 0.12, blue: 0.22))
+                                .clipShape(Circle())
+                        }
                     }
                     
-                    ShareLink(item: "I just scored \(vm.score) on Quiz Rush — beat that!") {
-                        Label("", systemImage: "square.and.arrow.up")
-                            .font(.system(.headline, design: .rounded))
-                            .bold()
-                            .foregroundStyle(.white)
-                            .padding(.all, 12)
-                            .background(Color(red: 0.12, green: 0.12, blue: 0.22))
-                            .clipShape(Circle())
+                    Button(action: {
+                        vm.viewState = .idle
+                    }) {
+                        Text("Change Category")
+                            .font(.system(.subheadline, design: .rounded))
+                            .fontWeight(.bold)
+                            .foregroundStyle(.purple)
+                            .padding(.vertical, 8)
+                            .padding(.horizontal, 24)
                     }
                 }
             }
@@ -409,6 +507,87 @@ struct QuizRushView: View {
         let generator = UINotificationFeedbackGenerator()
         generator.prepare()
         generator.notificationOccurred(type)
+    }
+}
+
+// MARK: - Holographic Space Nebula Background
+struct HolographicSpaceNebulaBackground: View {
+    @State private var animate = false
+    
+    private let stars = (0..<20).map { _ in
+        Star(
+            id: UUID(),
+            x: CGFloat.random(in: 10...380),
+            y: CGFloat.random(in: 50...750),
+            size: CGFloat.random(in: 2...4),
+            speed: Double.random(in: 4.0...8.0),
+            delay: Double.random(in: 0.0...3.0)
+        )
+    }
+    
+    var body: some View {
+        ZStack {
+            Color(red: 0.02, green: 0.01, blue: 0.04)
+                .ignoresSafeArea()
+            
+            ZStack {
+                Circle()
+                    .fill(Color.purple.opacity(0.22))
+                    .frame(width: 320, height: 320)
+                    .offset(x: animate ? -50 : 50, y: animate ? -80 : 80)
+                    .blur(radius: 60)
+                
+                Circle()
+                    .fill(Color.indigo.opacity(0.20))
+                    .frame(width: 280, height: 280)
+                    .offset(x: animate ? 70 : -70, y: animate ? 70 : -70)
+                    .blur(radius: 50)
+            }
+            .onAppear {
+                withAnimation(.easeInOut(duration: 9.0).repeatForever(autoreverses: true)) {
+                    animate.toggle()
+                }
+            }
+            
+            ForEach(stars) { star in
+                StarItemView(star: star)
+            }
+        }
+    }
+}
+
+struct Star: Identifiable {
+    let id: UUID
+    let x: CGFloat
+    let y: CGFloat
+    let size: CGFloat
+    let speed: Double
+    let delay: Double
+}
+
+struct StarItemView: View {
+    let star: Star
+    @State private var scale: CGFloat = 0.2
+    @State private var opacity: Double = 0.2
+    
+    var body: some View {
+        Circle()
+            .fill(Color.white.opacity(0.8))
+            .frame(width: star.size, height: star.size)
+            .position(x: star.x, y: star.y)
+            .scaleEffect(scale)
+            .opacity(opacity)
+            .shadow(color: .white.opacity(0.5), radius: 3)
+            .onAppear {
+                withAnimation(
+                    .easeInOut(duration: star.speed / 2.0)
+                    .repeatForever(autoreverses: true)
+                    .delay(star.delay)
+                ) {
+                    scale = 1.2
+                    opacity = 0.90
+                }
+            }
     }
 }
 

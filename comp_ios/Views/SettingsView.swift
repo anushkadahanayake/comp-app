@@ -67,7 +67,7 @@ struct SettingsView: View {
                 ) {
                     Toggle("Enable Daily Challenge", isOn: $notificationsEnabled)
                         .tint(.cyan)
-                        .onChange(of: notificationsEnabled) { enabled in
+                        .onChange(of: notificationsEnabled) { _, enabled in
                             if enabled {
                                 notifications.requestPermission()
                                 notifications.scheduleDailyChallenge(at: Date(timeIntervalSince1970: challengeTimeDouble))

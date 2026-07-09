@@ -13,6 +13,7 @@
 		863B622B2FD964320088C895 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B62282FD964320088C895 /* ContentView.swift */; };
 		863B62352FD96F210088C895 /* GameViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B62332FD969640088C895 /* GameViewModel.swift */; };
 		863B62362FD96F210088C895 /* GameState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B62322FD969440088C895 /* GameState.swift */; };
+		863B62802FD968000088C895 /* GameCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B627F2FD968000088C895 /* GameCatalog.swift */; };
 		863B62512FD964320088C895 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B62502FD964320088C895 /* HomeView.swift */; };
 		863B62532FD964320088C895 /* TapFrenzyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B62522FD964320088C895 /* TapFrenzyView.swift */; };
 		863B62552FD964320088C895 /* LightItUpView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B62542FD964320088C895 /* LightItUpView.swift */; };
@@ -33,6 +34,7 @@
 		863B62272FD964320088C895 /* comp_iosApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = comp_iosApp.swift; sourceTree = "<group>"; };
 		863B62282FD964320088C895 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		863B62322FD969440088C895 /* GameState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameState.swift; sourceTree = "<group>"; };
+		863B627F2FD968000088C895 /* GameCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameCatalog.swift; sourceTree = "<group>"; };
 		863B62332FD969640088C895 /* GameViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameViewModel.swift; sourceTree = "<group>"; };
 		863B62502FD964320088C895 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		863B62522FD964320088C895 /* TapFrenzyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TapFrenzyView.swift; sourceTree = "<group>"; };
@@ -73,6 +75,7 @@
 			isa = PBXGroup;
 			children = (
 				863B62322FD969440088C895 /* GameState.swift */,
+				863B627F2FD968000088C895 /* GameCatalog.swift */,
 				863B62752FD967E00088C895 /* GameSession.swift */,
 			);
 			path = Models;
@@ -214,6 +217,7 @@
 
 				863B62552FD964320088C895 /* LightItUpView.swift in Sources */,
 				863B62362FD96F210088C895 /* GameState.swift in Sources */,
+				863B62802FD968000088C895 /* GameCatalog.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

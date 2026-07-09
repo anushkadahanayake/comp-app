@@ -93,7 +93,7 @@ struct GameMapView: View {
             }
         }
         .navigationTitle("Map of Games")
-        .onChange(of: selectedPinId) { newId in
+        .onChange(of: selectedPinId) { _, newId in
             withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
                 selectedPin = pins.first(where: { $0.id == newId })
             }

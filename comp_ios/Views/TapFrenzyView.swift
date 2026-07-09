@@ -22,8 +22,7 @@ struct TapFrenzyView: View {
     var body: some View {
         GeometryReader { proxy in
             ZStack {
-                // Dark Neon Background
-                Color(red: 0.03, green: 0.03, blue: 0.07)
+                ElectricCyberPlasmaBackground()
                     .ignoresSafeArea()
                 
                 VStack(spacing: 24) {
@@ -389,7 +388,7 @@ struct TapFrenzyView: View {
                 pulseOuterRing = true
             }
         }
-        .onChange(of: vm.state) { newState in
+        .onChange(of: vm.state) { _, newState in
             if newState == .finished {
                 DispatchQueue.main.async {
                     if vm.tapCount > highScoreTapFrenzy {
@@ -401,7 +400,7 @@ struct TapFrenzyView: View {
                 }
             }
         }
-        .onChange(of: vm.hapticTrigger) { trigger in
+        .onChange(of: vm.hapticTrigger) { _, trigger in
             guard let trigger = trigger else { return }
             switch trigger {
             case .success:
@@ -446,5 +445,92 @@ struct TapFrenzyView: View {
 #Preview {
     NavigationStack {
         TapFrenzyView()
+    }
+}
+
+// MARK: - Electric Cyber Plasma Background
+struct ElectricCyberPlasmaBackground: View {
+    @State private var animate = false
+    
+    private let sparks = (0..<15).map { _ in
+        Spark(
+            id: UUID(),
+            x: CGFloat.random(in: 10...380),
+            size: CGFloat.random(in: 4...8),
+            speed: Double.random(in: 4.0...7.0),
+            delay: Double.random(in: 0.0...3.0)
+        )
+    }
+    
+    var body: some View {
+        ZStack {
+            Color(red: 0.01, green: 0.02, blue: 0.05)
+                .ignoresSafeArea()
+            
+            ZStack {
+                // Blob 1 (Electric Blue)
+                Circle()
+                    .fill(Color.blue.opacity(0.25))
+                    .frame(width: 320, height: 320)
+                    .offset(x: animate ? -60 : 60, y: animate ? -70 : 70)
+                    .blur(radius: 55)
+                
+                // Blob 2 (Cyber Cyan)
+                Circle()
+                    .fill(Color.cyan.opacity(0.20))
+                    .frame(width: 280, height: 280)
+                    .offset(x: animate ? 80 : -80, y: animate ? 90 : -90)
+                    .blur(radius: 45)
+            }
+            .onAppear {
+                withAnimation(.easeInOut(duration: 7.0).repeatForever(autoreverses: true)) {
+                    animate.toggle()
+                }
+            }
+            
+            // Fast sparks
+            GeometryReader { proxy in
+                ZStack {
+                    ForEach(sparks) { spark in
+                        SparkItemView(spark: spark, containerHeight: proxy.size.height)
+                    }
+                }
+            }
+        }
+    }
+}
+
+struct Spark: Identifiable {
+    let id: UUID
+    let x: CGFloat
+    let size: CGFloat
+    let speed: Double
+    let delay: Double
+}
+
+struct SparkItemView: View {
+    let spark: Spark
+    let containerHeight: CGFloat
+    
+    @State private var offset: CGFloat = 0
+    @State private var opacity: Double = 0.8
+    
+    var body: some View {
+        RoundedRectangle(cornerRadius: 3)
+            .fill(Color.cyan.opacity(0.6))
+            .frame(width: 2, height: spark.size)
+            .position(x: spark.x, y: containerHeight + 20 - offset)
+            .opacity(opacity)
+            .shadow(color: .cyan.opacity(0.8), radius: 4)
+            .onAppear {
+                withAnimation(
+                    .linear(duration: spark.speed)
+                    .repeatForever(autoreverses: false)
+                    .delay(spark.delay)
+                ) {
+                    offset = containerHeight + 100
+                    opacity = 0.0
+                }
+            }
     }
 }
