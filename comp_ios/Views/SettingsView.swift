@@ -28,48 +28,82 @@ struct SettingsView: View {
         )
     }
     
+    init() {
+        // Customize global List appearance for dark console look
+        UITableView.appearance().backgroundColor = .clear
+    }
+    
     var body: some View {
-        List {
-            Section(
-                header: Text("GAMEPLAY SETTINGS"),
-                footer: Text("Changing the round duration will automatically adjust the level-up thresholds proportionately in Light It Up.")
-            ) {
-                Picker("Round Length", selection: $roundDuration) {
-                    Text("30 Seconds").tag(30.0)
-                    Text("60 Seconds (Default)").tag(60.0)
-                    Text("90 Seconds").tag(90.0)
-                }
-                .pickerStyle(.menu)
-            }
+        ZStack {
+            // Dark gaming background
+            Color(red: 0.03, green: 0.03, blue: 0.07)
+                .ignoresSafeArea()
             
-            Section(header: Text("DAILY REMINDER")) {
-                Toggle("Enable Daily Challenge", isOn: $notificationsEnabled)
-                    .onChange(of: notificationsEnabled) { enabled in
-                        if enabled {
-                            notifications.requestPermission()
-                            notifications.scheduleDailyChallenge(at: Date(timeIntervalSince1970: challengeTimeDouble))
-                        } else {
-                            notifications.cancelDailyChallenge()
+            List {
+                Section(
+                    header: Text("GAMEPLAY SETTINGS")
+                        .font(.system(.caption, design: .rounded))
+                        .fontWeight(.black)
+                        .foregroundStyle(.cyan),
+                    footer: Text("Changing the round duration will automatically adjust the level-up thresholds proportionately in Light It Up.")
+                        .font(.system(.caption, design: .rounded))
+                        .foregroundStyle(.secondary)
+                ) {
+                    Picker("Round Length", selection: $roundDuration) {
+                        Text("30 Seconds").tag(30.0)
+                        Text("60 Seconds (Default)").tag(60.0)
+                        Text("90 Seconds").tag(90.0)
+                    }
+                    .pickerStyle(.menu)
+                    .foregroundStyle(.white)
+                }
+                .listRowBackground(Color(red: 0.08, green: 0.08, blue: 0.15))
+                
+                Section(
+                    header: Text("DAILY REMINDER")
+                        .font(.system(.caption, design: .rounded))
+                        .fontWeight(.black)
+                        .foregroundStyle(.purple)
+                ) {
+                    Toggle("Enable Daily Challenge", isOn: $notificationsEnabled)
+                        .tint(.cyan)
+                        .onChange(of: notificationsEnabled) { enabled in
+                            if enabled {
+                                notifications.requestPermission()
+                                notifications.scheduleDailyChallenge(at: Date(timeIntervalSince1970: challengeTimeDouble))
+                            } else {
+                                notifications.cancelDailyChallenge()
+                            }
+                        }
+                    
+                    if notificationsEnabled {
+                        DatePicker("Reminder Time", selection: challengeTimeBinding, displayedComponents: .hourAndMinute)
+                            .foregroundStyle(.white)
+                    }
+                }
+                .listRowBackground(Color(red: 0.08, green: 0.08, blue: 0.15))
+                
+                Section(
+                    header: Text("DANGER ZONE")
+                        .font(.system(.caption, design: .rounded))
+                        .fontWeight(.black)
+                        .foregroundStyle(.red)
+                ) {
+                    Button(role: .destructive, action: {
+                        showResetConfirmation = true
+                    }) {
+                        HStack {
+                            Spacer()
+                            Text("Reset All Scores & Stats")
+                                .fontWeight(.black)
+                                .foregroundStyle(.red)
+                            Spacer()
                         }
                     }
-                
-                if notificationsEnabled {
-                    DatePicker("Reminder Time", selection: challengeTimeBinding, displayedComponents: .hourAndMinute)
                 }
+                .listRowBackground(Color(red: 0.08, green: 0.08, blue: 0.15))
             }
-            
-            Section(header: Text("DANGER ZONE")) {
-                Button(role: .destructive, action: {
-                    showResetConfirmation = true
-                }) {
-                    HStack {
-                        Spacer()
-                        Text("Reset All Scores & Stats")
-                            .fontWeight(.bold)
-                        Spacer()
-                    }
-                }
-            }
+            .scrollContentBackground(.hidden)
         }
         .navigationTitle("Settings")
         .confirmationDialog(

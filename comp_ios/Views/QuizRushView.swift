@@ -5,15 +5,13 @@ struct QuizRushView: View {
     @AppStorage("HighScore_QuizRush") private var highScoreQuizRush: Int = 0
     @Environment(\.dismiss) private var dismiss
     
+    @State private var scaleCombo = false
+    
     var body: some View {
         ZStack {
-            // Premium background gradient
-            LinearGradient(
-                colors: [Color(.systemBackground), Color(.systemGray6)],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea()
+            // Dark Gaming Background
+            Color(red: 0.03, green: 0.03, blue: 0.07)
+                .ignoresSafeArea()
             
             VStack {
                 switch vm.viewState {
@@ -32,6 +30,14 @@ struct QuizRushView: View {
         }
         .navigationTitle("Quiz Rush")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button("Close") {
+                    dismiss()
+                }
+                .foregroundStyle(.purple)
+            }
+        }
         .task {
             await vm.load()
         }
@@ -43,6 +49,18 @@ struct QuizRushView: View {
                     vm.isNewHighScore = true
                 } else {
                     vm.isNewHighScore = false
+                }
+            }
+        }
+        .onChange(of: vm.streak) { newStreak in
+            if newStreak > 0 {
+                withAnimation(.spring(response: 0.25, dampingFraction: 0.5)) {
+                    scaleCombo = true
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    withAnimation(.spring(response: 0.25, dampingFraction: 0.6)) {
+                        scaleCombo = false
+                    }
                 }
             }
         }
@@ -83,6 +101,7 @@ struct QuizRushView: View {
             Text("Oops!")
                 .font(.system(.title2, design: .rounded))
                 .fontWeight(.bold)
+                .foregroundStyle(.white)
             
             Text(message)
                 .font(.system(.body, design: .rounded))
@@ -118,66 +137,77 @@ struct QuizRushView: View {
                 VStack(spacing: 4) {
                     Text("QUESTION")
                         .font(.system(.caption, design: .rounded))
-                        .fontWeight(.bold)
-                        .foregroundStyle(.secondary)
+                        .fontWeight(.black)
+                        .foregroundStyle(.cyan)
                     Text("\(vm.index + 1) / \(vm.questions.count)")
                         .font(.system(.headline, design: .rounded))
-                        .fontWeight(.bold)
+                        .fontWeight(.black)
+                        .foregroundStyle(.white)
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 12)
-                .background(Color(.secondarySystemGroupedBackground))
-                .cornerRadius(16)
-                .shadow(color: .black.opacity(0.02), radius: 5, x: 0, y: 2)
+                .background(Color(red: 0.08, green: 0.08, blue: 0.15))
+                .cornerRadius(18)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 18)
+                        .stroke(Color.cyan.opacity(0.3), lineWidth: 1.5)
+                )
                 
                 VStack(spacing: 4) {
                     Text("SCORE")
                         .font(.system(.caption, design: .rounded))
-                        .fontWeight(.bold)
-                        .foregroundStyle(.secondary)
+                        .fontWeight(.black)
+                        .foregroundStyle(.purple)
                     Text("\(vm.score)")
                         .font(.system(.headline, design: .rounded))
-                        .fontWeight(.bold)
+                        .fontWeight(.black)
+                        .foregroundStyle(.white)
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 12)
-                .background(Color(.secondarySystemGroupedBackground))
-                .cornerRadius(16)
-                .shadow(color: .black.opacity(0.02), radius: 5, x: 0, y: 2)
+                .background(Color(red: 0.08, green: 0.08, blue: 0.15))
+                .cornerRadius(18)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 18)
+                        .stroke(Color.purple.opacity(0.3), lineWidth: 1.5)
+                )
                 
                 VStack(spacing: 4) {
                     Text("STREAK")
                         .font(.system(.caption, design: .rounded))
-                        .fontWeight(.bold)
-                        .foregroundStyle(.secondary)
+                        .fontWeight(.black)
+                        .foregroundStyle(.orange)
                     
                     HStack(spacing: 4) {
                         Image(systemName: "flame.fill")
                             .foregroundStyle(vm.streak > 0 ? .orange : .gray.opacity(0.4))
                         Text("\(vm.streak)")
                             .font(.system(.headline, design: .rounded))
-                            .fontWeight(.bold)
-                            .foregroundStyle(vm.streak > 0 ? .orange : .primary)
+                            .fontWeight(.black)
+                            .foregroundStyle(vm.streak > 0 ? .orange : .white)
                     }
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 12)
-                .background(Color(.secondarySystemGroupedBackground))
-                .cornerRadius(16)
-                .shadow(color: .black.opacity(0.02), radius: 5, x: 0, y: 2)
+                .background(Color(red: 0.08, green: 0.08, blue: 0.15))
+                .cornerRadius(18)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 18)
+                        .stroke(Color.orange.opacity(0.3), lineWidth: 1.5)
+                )
             }
             .padding(.horizontal)
             .padding(.top, 8)
             
-            // Question Card Display
+            // Question Card Display (Holographic outline)
             if let question = vm.currentQuestion {
                 VStack(spacing: 16) {
                     Spacer()
                     
                     Text(question.decodedQuestion)
                         .font(.system(.title3, design: .rounded))
-                        .fontWeight(.semibold)
-                        .foregroundStyle(.primary)
+                        .fontWeight(.bold)
+                        .foregroundStyle(.white)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 20)
                         .minimumScaleFactor(0.8)
@@ -186,27 +216,47 @@ struct QuizRushView: View {
                 }
                 .frame(height: 180)
                 .frame(maxWidth: .infinity)
-                .background(Color(.secondarySystemGroupedBackground))
+                .background(Color(red: 0.05, green: 0.05, blue: 0.12).opacity(0.8))
                 .cornerRadius(24)
                 .overlay(
                     RoundedRectangle(cornerRadius: 24, style: .continuous)
-                        .stroke(Color.gray.opacity(0.12), lineWidth: 1.5)
+                        .stroke(LinearGradient(colors: [.cyan.opacity(0.6), .purple.opacity(0.6)], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 2)
                 )
-                .shadow(color: .black.opacity(0.03), radius: 10, x: 0, y: 5)
+                .shadow(color: .cyan.opacity(0.15), radius: 15)
                 .modifier(ShakeEffect(animatableData: vm.shakeTrigger))
                 .padding(.horizontal)
+                
+                // Combo / Streak Fire banner
+                if vm.streak > 0 {
+                    HStack(spacing: 8) {
+                        Image(systemName: "flame.fill")
+                        Text("COMBO MULTIPLIER X\(vm.streak) 🔥")
+                            .font(.system(.caption, design: .rounded))
+                            .fontWeight(.black)
+                    }
+                    .foregroundStyle(.white)
+                    .padding(.vertical, 6)
+                    .padding(.horizontal, 16)
+                    .background(
+                        LinearGradient(colors: [.red, .orange], startPoint: .leading, endPoint: .trailing)
+                    )
+                    .clipShape(Capsule())
+                    .shadow(color: .orange.opacity(0.5), radius: 8)
+                    .scaleEffect(scaleCombo ? 1.25 : 1.0)
+                    .transition(.scale.combined(with: .opacity))
+                }
                 
                 // Choices List (Cached Shuffled Order)
                 VStack(spacing: 12) {
                     ForEach(vm.shuffledAnswers(for: question), id: \.self) { answer in
                         Button(action: {
-                            withAnimation(.spring(response: 0.2, dampingFraction: 0.6)) {
+                            withAnimation(.spring(response: 0.18, dampingFraction: 0.6)) {
                                 vm.tapAnswer(answer)
                             }
                         }) {
                             Text(answer)
                                 .font(.system(.body, design: .rounded))
-                                .fontWeight(.semibold)
+                                .fontWeight(.bold)
                                 .foregroundStyle(choiceTextColor(for: answer))
                                 .padding(.vertical, 16)
                                 .frame(maxWidth: .infinity)
@@ -216,7 +266,7 @@ struct QuizRushView: View {
                                     RoundedRectangle(cornerRadius: 16, style: .continuous)
                                         .stroke(choiceBorderColor(for: answer), lineWidth: 1.5)
                                 )
-                                .shadow(color: .black.opacity(0.02), radius: 4, x: 0, y: 2)
+                                .shadow(color: choiceGlowColor(for: answer).opacity(0.12), radius: 6)
                         }
                         .disabled(vm.isTransitioning)
                         .buttonStyle(PlainButtonStyle())
@@ -238,18 +288,19 @@ struct QuizRushView: View {
                     .font(.system(.title2, design: .rounded))
                     .fontWeight(.black)
                     .foregroundStyle(
-                        LinearGradient(colors: [.purple, .blue], startPoint: .leading, endPoint: .trailing)
+                        LinearGradient(colors: [.purple, .pink], startPoint: .leading, endPoint: .trailing)
                     )
+                    .shadow(color: .purple.opacity(0.4), radius: 8)
                 
                 VStack(spacing: 4) {
                     Text("Final Score")
                         .font(.subheadline)
-                        .fontWeight(.medium)
+                        .fontWeight(.bold)
                         .foregroundStyle(.secondary)
                     Text("\(vm.score)")
                         .font(.system(.largeTitle, design: .rounded))
-                        .fontWeight(.bold)
-                        .foregroundStyle(.primary)
+                        .fontWeight(.black)
+                        .foregroundStyle(.white)
                 }
                 
                 if vm.isNewHighScore {
@@ -263,11 +314,12 @@ struct QuizRushView: View {
                             LinearGradient(colors: [.orange, .yellow], startPoint: .leading, endPoint: .trailing)
                         )
                         .clipShape(Capsule())
-                        .shadow(color: .orange.opacity(0.3), radius: 4, x: 0, y: 2)
+                        .shadow(color: .orange.opacity(0.5), radius: 10)
+                        .transition(.scale.combined(with: .opacity))
                 } else {
                     Text("High Score: \(highScoreQuizRush)")
                         .font(.subheadline)
-                        .fontWeight(.semibold)
+                        .fontWeight(.bold)
                         .foregroundStyle(.secondary)
                 }
                 
@@ -287,28 +339,28 @@ struct QuizRushView: View {
                                 LinearGradient(colors: [.blue, .purple], startPoint: .leading, endPoint: .trailing)
                             )
                             .clipShape(Capsule())
-                            .shadow(color: .blue.opacity(0.3), radius: 8, x: 0, y: 4)
+                            .shadow(color: .blue.opacity(0.4), radius: 8, x: 0, y: 4)
                     }
                     
                     ShareLink(item: "I just scored \(vm.score) on Quiz Rush — beat that!") {
                         Label("", systemImage: "square.and.arrow.up")
                             .font(.system(.headline, design: .rounded))
                             .bold()
-                            .foregroundStyle(.primary)
+                            .foregroundStyle(.white)
                             .padding(.all, 12)
-                            .background(Color(.systemGray5))
+                            .background(Color(red: 0.12, green: 0.12, blue: 0.22))
                             .clipShape(Circle())
                     }
                 }
             }
             .padding(.all, 32)
-            .background(Color(.secondarySystemGroupedBackground))
+            .background(Color(red: 0.05, green: 0.05, blue: 0.10).opacity(0.95))
             .cornerRadius(28)
             .overlay(
                 RoundedRectangle(cornerRadius: 28, style: .continuous)
-                    .stroke(Color.gray.opacity(0.12), lineWidth: 1.5)
+                    .stroke(Color.white.opacity(0.12), lineWidth: 1.5)
             )
-            .shadow(color: .black.opacity(0.04), radius: 10, x: 0, y: 5)
+            .shadow(color: .purple.opacity(0.1), radius: 15)
             .padding(.horizontal, 24)
             
             Spacer()
@@ -323,30 +375,34 @@ struct QuizRushView: View {
         if let wrong = vm.wrongHighlightIndex, wrong == answer {
             return .red
         }
-        if vm.isTransitioning {
-            return Color(.systemGray6)
-        }
-        return Color(.secondarySystemGroupedBackground)
+        return Color(red: 0.08, green: 0.08, blue: 0.16)
     }
     
     private func choiceTextColor(for answer: String) -> Color {
         if vm.correctHighlightIndex == answer || vm.wrongHighlightIndex == answer {
             return .white
         }
-        if vm.isTransitioning {
-            return .secondary
-        }
-        return .primary
+        return .white.opacity(0.85)
     }
     
     private func choiceBorderColor(for answer: String) -> Color {
+        if let correct = vm.correctHighlightIndex, correct == answer {
+            return .green
+        }
+        if let wrong = vm.wrongHighlightIndex, wrong == answer {
+            return .red
+        }
+        return Color.white.opacity(0.12)
+    }
+    
+    private func choiceGlowColor(for answer: String) -> Color {
         if vm.correctHighlightIndex == answer {
             return .green
         }
         if vm.wrongHighlightIndex == answer {
             return .red
         }
-        return Color.gray.opacity(0.15)
+        return .clear
     }
     
     private func triggerNotificationFeedback(type: UINotificationFeedbackGenerator.FeedbackType) {
