@@ -1,5 +1,6 @@
 import SwiftUI
 import Combine
+import CoreLocation
 
 // Fallbacks in case shared files aren't compiled into this target yet
 #if canImport(SwiftUI)
@@ -63,6 +64,15 @@ final class TapFrenzyVM: ObservableObject {
                 if self.timeLeft <= 0 {
                     t.invalidate()
                     self.state = .finished
+                    
+                    let lat = LocationService.shared.lastLocation?.coordinate.latitude
+                    let lon = LocationService.shared.lastLocation?.coordinate.longitude
+                    SessionHistoryManager.shared.saveSession(
+                        mode: "Tap Frenzy",
+                        score: self.tapCount,
+                        latitude: lat,
+                        longitude: lon
+                    )
                 }
             }
         }

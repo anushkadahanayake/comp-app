@@ -28,13 +28,17 @@ final class SessionHistoryManager: ObservableObject {
             latitude: latitude,
             longitude: longitude
         )
-        sessions.append(newSession)
-        saveToDisk()
+        DispatchQueue.main.async {
+            self.sessions.append(newSession)
+            self.saveToDisk()
+        }
     }
     
     func clearAll() {
-        sessions.removeAll()
-        saveToDisk()
+        DispatchQueue.main.async {
+            self.sessions.removeAll()
+            self.saveToDisk()
+        }
     }
     
     private func saveToDisk() {
