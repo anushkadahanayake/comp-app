@@ -192,7 +192,7 @@ struct HomeView: View {
             Text("ARCADE FRENZY")
                 .font(.system(.largeTitle, design: .rounded))
                 .fontWeight(.heavy)
-                .foregroundStyle(ArcadeTheme.textPrimary)
+                .foregroundStyle(ArcadeTheme.brandGradient)
                 .offset(y: animateHeader ? 0 : -20)
                 .opacity(animateHeader ? 1.0 : 0.0)
 
@@ -257,7 +257,7 @@ struct HomeView: View {
                 }
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
-            .frame(height: 260)
+            .frame(height: 300)
             .onChange(of: carouselPage) { _, newPage in
                 if newPage >= loopClonePage {
                     // User swiped onto the clone page — snap to real first without reverse scroll.
@@ -306,7 +306,7 @@ struct HomeView: View {
                                 .lineLimit(1)
                         }
                         .font(.caption.weight(.semibold))
-                        .foregroundStyle(selectedIndex == index ? ArcadeTheme.backgroundDeep : ArcadeTheme.textSecondary)
+                        .foregroundStyle(selectedIndex == index ? .white : ArcadeTheme.textSecondary)
                         .padding(.horizontal, 14)
                         .padding(.vertical, 10)
                         .background(
@@ -379,11 +379,11 @@ struct HomeView: View {
                     .fontWeight(.bold)
             }
             .font(.headline)
-            .foregroundStyle(ArcadeTheme.backgroundDeep)
+            .foregroundStyle(.white)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 16)
             .background(ArcadeTheme.brandGradient, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-            .shadow(color: ArcadeTheme.accent.opacity(0.25), radius: 10, y: 4)
+            .shadow(color: ArcadeTheme.accent.opacity(0.35), radius: 12, y: 5)
         }
         .buttonStyle(.plain)
     }
@@ -404,106 +404,219 @@ struct GameHeroCard: View {
     let isSelected: Bool
 
     var body: some View {
-        ZStack(alignment: .bottomLeading) {
-            Group {
+        VStack(spacing: 14) {
+            HStack {
+                Label(game.title, systemImage: game.icon)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(ArcadeTheme.textSecondary)
+
+                Spacer()
+
+                Text(isSelected ? "TAP TO PLAY" : "TAP")
+                    .font(.caption2.weight(.bold))
+                    .foregroundStyle(isSelected ? .white : ArcadeTheme.backgroundDeep)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 5)
+                    .background(isSelected ? ArcadeTheme.accent : Color.white.opacity(0.88), in: Capsule())
+            }
+            .padding(.horizontal, 4)
+
+            ZStack {
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                game.gradient.first?.opacity(0.22) ?? ArcadeTheme.surfaceElevated,
+                                ArcadeTheme.surfaceMuted
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+
                 if UIImage(named: game.imageName) != nil {
                     Image(game.imageName)
                         .resizable()
-                        .scaledToFill()
+                        .scaledToFit()
+                        .padding(18)
                 } else {
-                    LinearGradient(colors: game.gradient, startPoint: .topLeading, endPoint: .bottomTrailing)
+                    Image(systemName: game.icon)
+                        .font(.system(size: 56, weight: .semibold))
+                        .foregroundStyle(game.gradient.first ?? ArcadeTheme.accent)
                 }
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .clipped()
+            .frame(maxWidth: .infinity)
+            .frame(height: 150)
 
-            LinearGradient(colors: [.clear, .black.opacity(0.72)], startPoint: .center, endPoint: .bottom)
-                .allowsHitTesting(false)
-
-            VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    Label(game.title, systemImage: game.icon)
-                        .font(.caption.bold())
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .background(.black.opacity(0.35), in: Capsule())
-
-                    Spacer()
-
-                    Text(isSelected ? "TAP TO PLAY" : "TAP")
-                        .font(.caption2.weight(.bold))
-                        .foregroundStyle(ArcadeTheme.backgroundDeep)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 5)
-                        .background(isSelected ? ArcadeTheme.accent : Color.white.opacity(0.9), in: Capsule())
-                }
-
+            VStack(alignment: .leading, spacing: 4) {
                 Text(game.title)
-                    .font(.title.bold())
+                    .font(.title3.bold())
                     .foregroundStyle(ArcadeTheme.textPrimary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
 
                 Text(game.subtitle)
                     .font(.subheadline)
                     .foregroundStyle(ArcadeTheme.textSecondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .padding(18)
         }
+        .padding(16)
         .background(ArcadeTheme.surface, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
-        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 22, style: .continuous)
                 .strokeBorder(isSelected ? ArcadeTheme.accent.opacity(0.7) : ArcadeTheme.border, lineWidth: isSelected ? 1.5 : 1)
         )
         .scaleEffect(isSelected ? 1.0 : 0.97)
         .animation(.easeOut(duration: 0.2), value: isSelected)
-        .shadow(color: .black.opacity(0.28), radius: isSelected ? 14 : 8, y: 6)
+        .shadow(color: .black.opacity(0.25), radius: isSelected ? 12 : 8, y: 5)
     }
 }
 
-// MARK: - Soft ambient background (eye-friendly, low saturation)
+// MARK: - Attractive blue animated home background
 struct LavaPlasmaBackgroundView: View {
-    @State private var animate = false
+    @State private var animateBlob1 = false
+    @State private var animateBlob2 = false
+    @State private var animateBlob3 = false
+    @State private var animateBlob4 = false
+    @State private var pulseRing = false
+    @State private var driftWave = false
 
     var body: some View {
         ZStack {
-            ArcadeTheme.backgroundDeep
-                .ignoresSafeArea()
+            // Deep blue base gradient
+            LinearGradient(
+                colors: [
+                    Color(red: 0.03, green: 0.06, blue: 0.14),
+                    Color(red: 0.05, green: 0.09, blue: 0.18),
+                    Color(red: 0.04, green: 0.05, blue: 0.10)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
+
+            // Large drifting orbs
+            Circle()
+                .fill(
+                    RadialGradient(
+                        colors: [ArcadeTheme.accent.opacity(0.45), ArcadeTheme.accent.opacity(0.0)],
+                        center: .center,
+                        startRadius: 10,
+                        endRadius: 180
+                    )
+                )
+                .frame(width: 380, height: 380)
+                .offset(x: animateBlob1 ? -70 : 55, y: animateBlob1 ? -140 : -50)
+                .scaleEffect(animateBlob1 ? 1.15 : 0.88)
 
             Circle()
-                .fill(ArcadeTheme.ambientA)
+                .fill(
+                    RadialGradient(
+                        colors: [ArcadeTheme.accentSecondary.opacity(0.40), .clear],
+                        center: .center,
+                        startRadius: 8,
+                        endRadius: 160
+                    )
+                )
                 .frame(width: 340, height: 340)
-                .offset(x: animate ? -40 : 50, y: animate ? -90 : -40)
-                .blur(radius: 70)
+                .offset(x: animateBlob2 ? 90 : -50, y: animateBlob2 ? 120 : 40)
+                .scaleEffect(animateBlob2 ? 0.9 : 1.18)
 
             Circle()
-                .fill(ArcadeTheme.ambientB)
-                .frame(width: 300, height: 300)
-                .offset(x: animate ? 60 : -40, y: animate ? 80 : 40)
-                .blur(radius: 65)
+                .fill(
+                    RadialGradient(
+                        colors: [ArcadeTheme.ambientD, .clear],
+                        center: .center,
+                        startRadius: 5,
+                        endRadius: 140
+                    )
+                )
+                .frame(width: 280, height: 280)
+                .offset(x: animateBlob3 ? -40 : 70, y: animateBlob3 ? 40 : -90)
+                .scaleEffect(animateBlob3 ? 1.2 : 0.85)
 
             Circle()
-                .fill(ArcadeTheme.ambientC)
-                .frame(width: 240, height: 240)
-                .offset(x: animate ? -30 : 40, y: animate ? 20 : -60)
-                .blur(radius: 55)
+                .fill(
+                    RadialGradient(
+                        colors: [ArcadeTheme.accentSoft.opacity(0.22), .clear],
+                        center: .center,
+                        startRadius: 4,
+                        endRadius: 120
+                    )
+                )
+                .frame(width: 220, height: 220)
+                .offset(x: animateBlob4 ? 40 : -60, y: animateBlob4 ? -30 : 80)
+                .blur(radius: 8)
+
+            // Soft breathing ring
+            Circle()
+                .strokeBorder(
+                    AngularGradient(
+                        colors: [
+                            ArcadeTheme.accent.opacity(0.0),
+                            ArcadeTheme.accent.opacity(0.35),
+                            ArcadeTheme.accentSoft.opacity(0.15),
+                            ArcadeTheme.accent.opacity(0.0)
+                        ],
+                        center: .center
+                    ),
+                    lineWidth: 2
+                )
+                .frame(width: pulseRing ? 280 : 220, height: pulseRing ? 280 : 220)
+                .opacity(pulseRing ? 0.35 : 0.6)
+                .offset(y: -40)
+
+            // Horizontal light wave near bottom
+            Ellipse()
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            .clear,
+                            ArcadeTheme.accent.opacity(0.18),
+                            ArcadeTheme.accentSoft.opacity(0.12),
+                            .clear
+                        ],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .frame(width: 420, height: 90)
+                .offset(x: driftWave ? 40 : -40, y: 220)
+                .blur(radius: 18)
         }
         .onAppear {
-            withAnimation(.easeInOut(duration: 10).repeatForever(autoreverses: true)) {
-                animate = true
+            withAnimation(.easeInOut(duration: 7).repeatForever(autoreverses: true)) {
+                animateBlob1 = true
+            }
+            withAnimation(.easeInOut(duration: 9).repeatForever(autoreverses: true)) {
+                animateBlob2 = true
+            }
+            withAnimation(.easeInOut(duration: 11).repeatForever(autoreverses: true)) {
+                animateBlob3 = true
+            }
+            withAnimation(.easeInOut(duration: 8.5).repeatForever(autoreverses: true)) {
+                animateBlob4 = true
+            }
+            withAnimation(.easeInOut(duration: 4.5).repeatForever(autoreverses: true)) {
+                pulseRing = true
+            }
+            withAnimation(.easeInOut(duration: 6).repeatForever(autoreverses: true)) {
+                driftWave = true
             }
         }
     }
 }
 
-// Soft dust motes — much quieter than neon embers
+// Floating blue sparkles with gentle sway
 struct EmberSparklesView: View {
-    private let particles = (0..<10).map { _ in
+    private let particles = (0..<22).map { i in
         Ember(
             id: UUID(),
-            x: CGFloat.random(in: 10...380),
-            size: CGFloat.random(in: 2...4),
-            speed: Double.random(in: 8.0...14.0),
-            delay: Double.random(in: 0.0...5.0)
+            x: CGFloat.random(in: 8...390),
+            size: CGFloat.random(in: 2...5),
+            speed: Double.random(in: 7.0...13.0),
+            delay: Double.random(in: 0.0...5.0),
+            swayAmount: CGFloat.random(in: 12...28)
         )
     }
 
@@ -526,6 +639,7 @@ struct Ember: Identifiable {
     let size: CGFloat
     let speed: Double
     let delay: Double
+    let swayAmount: CGFloat
 }
 
 struct EmberItemView: View {
@@ -533,13 +647,25 @@ struct EmberItemView: View {
     let containerHeight: CGFloat
 
     @State private var offset: CGFloat = 0
-    @State private var opacity: Double = 0.35
+    @State private var opacity: Double = 0.55
+    @State private var sway: CGFloat = 0
 
     var body: some View {
         Circle()
-            .fill(ArcadeTheme.accent.opacity(0.45))
-            .frame(width: ember.size, height: ember.size)
-            .position(x: ember.x, y: containerHeight + 20 - offset)
+            .fill(
+                RadialGradient(
+                    colors: [
+                        ArcadeTheme.accentSoft.opacity(0.95),
+                        ArcadeTheme.accent.opacity(0.35),
+                        .clear
+                    ],
+                    center: .center,
+                    startRadius: 0,
+                    endRadius: ember.size
+                )
+            )
+            .frame(width: ember.size * 2, height: ember.size * 2)
+            .position(x: ember.x + sway, y: containerHeight + 20 - offset)
             .opacity(opacity)
             .onAppear {
                 withAnimation(
@@ -547,8 +673,15 @@ struct EmberItemView: View {
                     .repeatForever(autoreverses: false)
                     .delay(ember.delay)
                 ) {
-                    offset = containerHeight + 80
+                    offset = containerHeight + 100
                     opacity = 0.0
+                }
+                withAnimation(
+                    .easeInOut(duration: Double.random(in: 2.2...3.8))
+                    .repeatForever(autoreverses: true)
+                    .delay(ember.delay)
+                ) {
+                    sway = ember.swayAmount * (Bool.random() ? 1 : -1)
                 }
             }
     }

@@ -40,7 +40,7 @@ struct ArcadeGame: Identifiable {
             mode: .lightItUp,
             subtitle: "Whack-a-mole reflex mode",
             imageName: "lightItUpHero",
-            gradient: [ArcadeTheme.lightItUp, ArcadeTheme.warning],
+            gradient: [ArcadeTheme.lightItUp, ArcadeTheme.accentSoft],
             icon: "lightbulb.fill",
             highScoreKey: "HighScore_LightItUp"
         ),

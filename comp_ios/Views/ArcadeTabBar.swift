@@ -38,12 +38,12 @@ struct ArcadeTabBar: View {
                     VStack(spacing: 5) {
                         Image(systemName: tab.icon)
                             .font(.system(size: 20, weight: selectedTab == tab ? .semibold : .regular))
-                            .foregroundStyle(selectedTab == tab ? ArcadeTheme.accent : ArcadeTheme.textTertiary)
+                            .foregroundStyle(selectedTab == tab ? ArcadeTheme.accentSoft : ArcadeTheme.textTertiary)
                             .frame(height: 26)
 
                         Text(tab.title)
                             .font(.system(size: 10, weight: .semibold, design: .rounded))
-                            .foregroundStyle(selectedTab == tab ? ArcadeTheme.textPrimary : ArcadeTheme.textTertiary)
+                            .foregroundStyle(selectedTab == tab ? ArcadeTheme.accentSoft : ArcadeTheme.textTertiary)
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 8)
