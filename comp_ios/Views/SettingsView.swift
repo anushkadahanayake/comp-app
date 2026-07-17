@@ -185,6 +185,17 @@ struct SettingsView: View {
                     .foregroundStyle(locationService.isAuthorized ? ArcadeTheme.success : ArcadeTheme.warning)
             }
 
+            if let place = locationService.placeLabel {
+                HStack {
+                    Label("Place", systemImage: "globe.asia.australia.fill")
+                    Spacer()
+                    Text(place)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.trailing)
+                }
+            }
+
             if let label = locationService.coordinateLabel {
                 HStack {
                     Label("Last Fix", systemImage: "mappin.and.ellipse")

@@ -7,14 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-
 		863B62292FD964320088C895 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 863B62262FD964320088C895 /* Assets.xcassets */; };
 		863B622A2FD964320088C895 /* comp_iosApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B62272FD964320088C895 /* comp_iosApp.swift */; };
 		863B622B2FD964320088C895 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B62282FD964320088C895 /* ContentView.swift */; };
 		863B62352FD96F210088C895 /* GameViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B62332FD969640088C895 /* GameViewModel.swift */; };
 		863B62362FD96F210088C895 /* GameState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B62322FD969440088C895 /* GameState.swift */; };
-		863B62802FD968000088C895 /* GameCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B627F2FD968000088C895 /* GameCatalog.swift */; };
-		863B628A2FD96B000088C895 /* ArcadeTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B62892FD96B000088C895 /* ArcadeTheme.swift */; };
 		863B62512FD964320088C895 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B62502FD964320088C895 /* HomeView.swift */; };
 		863B62532FD964320088C895 /* TapFrenzyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B62522FD964320088C895 /* TapFrenzyView.swift */; };
 		863B62552FD964320088C895 /* LightItUpView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B62542FD964320088C895 /* LightItUpView.swift */; };
@@ -27,19 +24,18 @@
 		863B627A2FD967E00088C895 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B62792FD967E00088C895 /* NotificationService.swift */; };
 		863B627C2FD967E00088C895 /* StatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B627B2FD967E00088C895 /* StatsView.swift */; };
 		863B627E2FD967E00088C895 /* GameMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B627D2FD967E00088C895 /* GameMapView.swift */; };
+		863B62802FD968000088C895 /* GameCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B627F2FD968000088C895 /* GameCatalog.swift */; };
 		863B62822FD969000088C895 /* ArcadeTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B62812FD969000088C895 /* ArcadeTabBar.swift */; };
 		863B62842FD969100088C895 /* AppFeedback.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B62832FD969100088C895 /* AppFeedback.swift */; };
 		863B62862FD96A000088C895 /* LocationCoordinateBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = 863B62852FD96A000088C895 /* LocationCoordinateBridge.m */; };
+		863B628A2FD96B000088C895 /* ArcadeTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B62892FD96B000088C895 /* ArcadeTheme.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-
 		863B62262FD964320088C895 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		863B62272FD964320088C895 /* comp_iosApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = comp_iosApp.swift; sourceTree = "<group>"; };
 		863B62282FD964320088C895 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		863B62322FD969440088C895 /* GameState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameState.swift; sourceTree = "<group>"; };
-		863B627F2FD968000088C895 /* GameCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameCatalog.swift; sourceTree = "<group>"; };
-		863B62892FD96B000088C895 /* ArcadeTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArcadeTheme.swift; sourceTree = "<group>"; };
 		863B62332FD969640088C895 /* GameViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameViewModel.swift; sourceTree = "<group>"; };
 		863B62502FD964320088C895 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		863B62522FD964320088C895 /* TapFrenzyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TapFrenzyView.swift; sourceTree = "<group>"; };
@@ -53,11 +49,13 @@
 		863B62792FD967E00088C895 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 		863B627B2FD967E00088C895 /* StatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsView.swift; sourceTree = "<group>"; };
 		863B627D2FD967E00088C895 /* GameMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameMapView.swift; sourceTree = "<group>"; };
+		863B627F2FD968000088C895 /* GameCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameCatalog.swift; sourceTree = "<group>"; };
 		863B62812FD969000088C895 /* ArcadeTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArcadeTabBar.swift; sourceTree = "<group>"; };
 		863B62832FD969100088C895 /* AppFeedback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppFeedback.swift; sourceTree = "<group>"; };
 		863B62852FD96A000088C895 /* LocationCoordinateBridge.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LocationCoordinateBridge.m; sourceTree = "<group>"; };
 		863B62872FD96A000088C895 /* LocationCoordinateBridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LocationCoordinateBridge.h; sourceTree = "<group>"; };
 		863B62882FD96A000088C895 /* comp_ios-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "comp_ios-Bridging-Header.h"; sourceTree = "<group>"; };
+		863B62892FD96B000088C895 /* ArcadeTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArcadeTheme.swift; sourceTree = "<group>"; };
 		868946602FD95D1B005E1193 /* comp_ios.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = comp_ios.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -102,7 +100,6 @@
 				863B62522FD964320088C895 /* TapFrenzyView.swift */,
 				863B62542FD964320088C895 /* LightItUpView.swift */,
 				863B62622FD964320088C895 /* QuizRushView.swift */,
-
 				863B627B2FD967E00088C895 /* StatsView.swift */,
 				863B627D2FD967E00088C895 /* GameMapView.swift */,
 			);
@@ -230,7 +227,6 @@
 				863B627C2FD967E00088C895 /* StatsView.swift in Sources */,
 				863B627E2FD967E00088C895 /* GameMapView.swift in Sources */,
 				863B62532FD964320088C895 /* TapFrenzyView.swift in Sources */,
-
 				863B62552FD964320088C895 /* LightItUpView.swift in Sources */,
 				863B62362FD96F210088C895 /* GameState.swift in Sources */,
 				863B62802FD968000088C895 /* GameCatalog.swift in Sources */,
@@ -372,11 +368,11 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We use your location to map where you played your games and show your scores on the map.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We use your location to map where you played your games and show your scores on the map.";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -404,11 +400,11 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We use your location to map where you played your games and show your scores on the map.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We use your location to map where you played your games and show your scores on the map.";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

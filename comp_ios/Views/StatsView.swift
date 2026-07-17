@@ -3,259 +3,352 @@ import Charts
 
 struct StatsView: View {
     @ObservedObject var historyManager = SessionHistoryManager.shared
-    
+
     @AppStorage("HighScore_TapFrenzy") private var highScoreTapFrenzy: Int = 0
     @AppStorage("HighScore_LightItUp") private var highScoreLightItUp: Int = 0
     @AppStorage("HighScore_QuizRush") private var highScoreQuizRush: Int = 0
-    
-    // Calculate total points
+
     private var totalPoints: Int {
         historyManager.sessions.reduce(0) { $0 + $1.score }
     }
-    
-    // Calculate rank title and emoji based on total points
-    private var playerRank: String {
+
+    private var gamesPlayed: Int { historyManager.sessions.count }
+
+    private var averageScore: Int {
+        guard gamesPlayed > 0 else { return 0 }
+        return totalPoints / gamesPlayed
+    }
+
+    private var favoriteMode: String {
+        let counts = Dictionary(grouping: historyManager.sessions, by: \.mode).mapValues(\.count)
+        return counts.max(by: { $0.value < $1.value })?.key ?? "—"
+    }
+
+    private var rank: (title: String, icon: String, nextAt: Int, progress: Double) {
         if totalPoints < 100 {
-            return "Neon Cadet 🛡️"
+            return ("Neon Cadet", "shield.fill", 100, Double(totalPoints) / 100)
         } else if totalPoints < 500 {
-            return "Pixel Warrior ⚔️"
+            return ("Pixel Warrior", "bolt.shield.fill", 500, Double(totalPoints - 100) / 400)
         } else if totalPoints < 2000 {
-            return "Arcade Champion 🏆"
+            return ("Arcade Champion", "trophy.fill", 2000, Double(totalPoints - 500) / 1500)
         } else {
-            return "Retro Legend 👑"
+            return ("Retro Legend", "crown.fill", totalPoints, 1)
         }
     }
-    
+
     var body: some View {
-        ScrollView {
-            VStack(spacing: 24) {
-                // Gamified Player Profile Badge
-                VStack(spacing: 12) {
-                    ZStack {
-                        Circle()
-                            .fill(LinearGradient(colors: [.purple, .cyan], startPoint: .topLeading, endPoint: .bottomTrailing))
-                            .frame(width: 80, height: 80)
-                            .shadow(color: .cyan.opacity(0.4), radius: 10)
-                        
-                        Image(systemName: "crown.fill")
-                            .font(.system(size: 36))
-                            .foregroundStyle(.white)
-                    }
-                    .padding(.top, 8)
-                    
-                    VStack(spacing: 4) {
-                        Text(playerRank)
-                            .font(.system(.title3, design: .rounded))
-                            .fontWeight(.black)
-                            .foregroundStyle(.white)
-                            .shadow(color: .cyan.opacity(0.3), radius: 6)
-                        
-                        Text("Rank Title • \(totalPoints) Total XP")
-                            .font(.system(.caption, design: .rounded))
-                            .fontWeight(.bold)
-                            .foregroundStyle(.secondary)
-                    }
+        ZStack {
+            ArcadeTheme.backgroundDeep
+                .ignoresSafeArea()
+
+            // Soft blue ambient glow
+            Circle()
+                .fill(ArcadeTheme.accent.opacity(0.12))
+                .frame(width: 280, height: 280)
+                .blur(radius: 50)
+                .offset(x: 120, y: -180)
+
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 20) {
+                    profileCard
+                    summaryGrid
+                    personalBestsCard
+                    chartsSection
+                    recentGamesCard
                 }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 20)
-                .background(Color(red: 0.08, green: 0.08, blue: 0.16))
-                .cornerRadius(24)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 24)
-                        .stroke(LinearGradient(colors: [.cyan.opacity(0.4), .purple.opacity(0.4)], startPoint: .leading, endPoint: .trailing), lineWidth: 1.5)
-                )
-                .padding(.horizontal)
-                
-                // Summary Stats Cards
-                HStack(spacing: 16) {
-                    VStack(spacing: 4) {
-                        Text("TOTAL GAMES")
-                            .font(.system(.caption, design: .rounded))
-                            .fontWeight(.black)
-                            .foregroundStyle(.cyan)
-                        Text("\(historyManager.sessions.count)")
-                            .font(.system(.title2, design: .rounded))
-                            .fontWeight(.black)
-                            .foregroundStyle(.white)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 16)
-                    .background(Color(red: 0.06, green: 0.06, blue: 0.12))
-                    .cornerRadius(18)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 18)
-                            .stroke(Color.cyan.opacity(0.2), lineWidth: 1.5)
-                    )
-                    
-                    VStack(spacing: 4) {
-                        Text("TOTAL POINTS")
-                            .font(.system(.caption, design: .rounded))
-                            .fontWeight(.black)
-                            .foregroundStyle(.purple)
-                        Text("\(totalPoints)")
-                            .font(.system(.title2, design: .rounded))
-                            .fontWeight(.black)
-                            .foregroundStyle(.white)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 16)
-                    .background(Color(red: 0.06, green: 0.06, blue: 0.12))
-                    .cornerRadius(18)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 18)
-                            .stroke(Color.purple.opacity(0.2), lineWidth: 1.5)
-                    )
-                }
-                .padding(.horizontal)
-                
-                // Personal Bests Group
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("PERSONAL BESTS")
-                        .font(.system(.caption, design: .rounded))
-                        .fontWeight(.black)
-                        .foregroundStyle(.secondary)
-                        .padding(.leading, 24)
-                    
-                    VStack(spacing: 0) {
-                        personalBestRow(title: "Tap Frenzy", score: highScoreTapFrenzy, color: .cyan)
-                        Divider().background(Color.white.opacity(0.1)).padding(.leading, 16)
-                        personalBestRow(title: "Light It Up", score: highScoreLightItUp, color: .orange)
-                        Divider().background(Color.white.opacity(0.1)).padding(.leading, 16)
-                        personalBestRow(title: "Quiz Rush", score: highScoreQuizRush, color: .purple)
-                    }
-                    .background(Color(red: 0.06, green: 0.06, blue: 0.12))
-                    .cornerRadius(20)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 20)
-                            .stroke(Color.white.opacity(0.1), lineWidth: 1)
-                    )
-                    .padding(.horizontal)
-                }
-                
-                // Charts Section
-                VStack(alignment: .leading, spacing: 16) {
-                    Text("PERFORMANCE CHARTS")
-                        .font(.system(.caption, design: .rounded))
-                        .fontWeight(.black)
-                        .foregroundStyle(.secondary)
-                        .padding(.leading, 24)
-                    
-                    ModeBarChart(
-                        title: "Tap Frenzy (Last 6 games)",
-                        sessions: historyManager.sessions.filter { $0.mode == "Tap Frenzy" },
-                        color: .cyan
-                    )
-                    .padding(.horizontal)
-                    
-                    ModeBarChart(
-                        title: "Light It Up (Last 6 games)",
-                        sessions: historyManager.sessions.filter { $0.mode == "Light It Up" },
-                        color: .orange
-                    )
-                    .padding(.horizontal)
-                    
-                    ModeBarChart(
-                        title: "Quiz Rush (Last 6 games)",
-                        sessions: historyManager.sessions.filter { $0.mode == "Quiz Rush" },
-                        color: .purple
-                    )
-                    .padding(.horizontal)
-                }
-                
-                // Recent Games List
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("RECENT GAMES")
-                        .font(.system(.caption, design: .rounded))
-                        .fontWeight(.black)
-                        .foregroundStyle(.secondary)
-                        .padding(.leading, 24)
-                    
-                    if historyManager.sessions.isEmpty {
-                        Text("No completed sessions yet.")
-                            .font(.system(.subheadline, design: .rounded))
-                            .foregroundStyle(.secondary)
-                            .frame(maxWidth: .infinity, alignment: .center)
-                            .padding(.vertical, 24)
-                            .background(Color(red: 0.06, green: 0.06, blue: 0.12))
-                            .cornerRadius(18)
-                            .padding(.horizontal)
-                    } else {
-                        VStack(spacing: 0) {
-                            ForEach(historyManager.sessions.reversed().prefix(10)) { session in
-                                HStack {
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text(session.mode)
-                                            .font(.system(.headline, design: .rounded))
-                                            .bold()
-                                            .foregroundStyle(.white)
-                                        Text(formatDate(session.timestamp))
-                                            .font(.system(.caption, design: .rounded))
-                                            .foregroundStyle(.secondary)
-                                    }
-                                    
-                                    Spacer()
-                                    
-                                    Text("\(session.score) pts")
-                                        .font(.system(.title3, design: .rounded))
-                                        .fontWeight(.bold)
-                                        .foregroundStyle(modeColor(session.mode))
-                                }
-                                .padding(.all, 16)
-                                .contentShape(Rectangle())
-                                
-                                Divider().background(Color.white.opacity(0.1)).padding(.leading, 16)
-                            }
-                        }
-                        .background(Color(red: 0.06, green: 0.06, blue: 0.12))
-                        .cornerRadius(20)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 20)
-                                .stroke(Color.white.opacity(0.1), lineWidth: 1)
-                        )
-                        .padding(.horizontal)
-                    }
-                }
-                
-                Spacer(minLength: 24)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 16)
+                .padding(.bottom, 28)
             }
-            .padding(.vertical)
         }
-        .background(Color(red: 0.03, green: 0.03, blue: 0.07))
         .navigationTitle("Stats")
+        .navigationBarTitleDisplayMode(.large)
     }
-    
-    private func personalBestRow(title: String, score: Int, color: Color) -> some View {
-        HStack {
-            Text(title)
-                .font(.system(.body, design: .rounded))
-                .fontWeight(.bold)
-                .foregroundStyle(.white)
-            
-            Spacer()
-            
-            Text("\(score) pts")
-                .font(.system(.headline, design: .rounded))
-                .fontWeight(.bold)
-                .foregroundStyle(color)
-                .shadow(color: color.opacity(0.4), radius: 6)
+
+    // MARK: - Profile
+
+    private var profileCard: some View {
+        VStack(spacing: 16) {
+            HStack(spacing: 16) {
+                ZStack {
+                    Circle()
+                        .fill(ArcadeTheme.brandGradient)
+                        .frame(width: 72, height: 72)
+
+                    Image(systemName: rank.icon)
+                        .font(.system(size: 30, weight: .semibold))
+                        .foregroundStyle(.white)
+                }
+
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(rank.title)
+                        .font(.title3.bold())
+                        .foregroundStyle(ArcadeTheme.textPrimary)
+
+                    Text("\(totalPoints) Total XP")
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(ArcadeTheme.textSecondary)
+
+                    if rank.progress < 1 {
+                        VStack(alignment: .leading, spacing: 4) {
+                            ProgressView(value: min(max(rank.progress, 0), 1))
+                                .tint(ArcadeTheme.accent)
+                            Text("\(max(0, rank.nextAt - totalPoints)) XP to next rank")
+                                .font(.caption2)
+                                .foregroundStyle(ArcadeTheme.textTertiary)
+                        }
+                    } else {
+                        Text("Max rank unlocked")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(ArcadeTheme.accentSoft)
+                    }
+                }
+
+                Spacer(minLength: 0)
+            }
         }
-        .padding(.all, 18)
+        .padding(18)
+        .background(ArcadeTheme.surface, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .strokeBorder(ArcadeTheme.borderStrong, lineWidth: 1)
+        )
     }
-    
+
+    // MARK: - Summary
+
+    private var summaryGrid: some View {
+        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+            summaryTile(title: "Games", value: "\(gamesPlayed)", icon: "gamecontroller.fill", color: ArcadeTheme.accent)
+            summaryTile(title: "Total Points", value: "\(totalPoints)", icon: "star.fill", color: ArcadeTheme.accentSoft)
+            summaryTile(title: "Avg Score", value: "\(averageScore)", icon: "chart.line.uptrend.xyaxis", color: ArcadeTheme.accentSecondary)
+            summaryTile(title: "Favorite", value: shortModeName(favoriteMode), icon: "heart.fill", color: ArcadeTheme.success)
+        }
+    }
+
+    private func summaryTile(title: String, value: String, icon: String, color: Color) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Image(systemName: icon)
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(color)
+                .frame(width: 32, height: 32)
+                .background(color.opacity(0.15), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+
+            Text(value)
+                .font(.title3.bold())
+                .foregroundStyle(ArcadeTheme.textPrimary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+
+            Text(title)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(ArcadeTheme.textSecondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(14)
+        .background(ArcadeTheme.surface, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .strokeBorder(ArcadeTheme.border, lineWidth: 1)
+        )
+    }
+
+    // MARK: - Personal Bests
+
+    private var personalBestsCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            sectionHeader("Personal Bests", icon: "medal.fill")
+
+            VStack(spacing: 0) {
+                personalBestRow(
+                    title: "Tap Frenzy",
+                    icon: "bolt.fill",
+                    score: highScoreTapFrenzy,
+                    color: ArcadeTheme.tapFrenzy
+                )
+                Divider().overlay(ArcadeTheme.border)
+                personalBestRow(
+                    title: "Light It Up",
+                    icon: "lightbulb.fill",
+                    score: highScoreLightItUp,
+                    color: ArcadeTheme.lightItUp
+                )
+                Divider().overlay(ArcadeTheme.border)
+                personalBestRow(
+                    title: "Quiz Rush",
+                    icon: "questionmark.circle.fill",
+                    score: highScoreQuizRush,
+                    color: ArcadeTheme.quizRush
+                )
+            }
+            .background(ArcadeTheme.surface, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .strokeBorder(ArcadeTheme.border, lineWidth: 1)
+            )
+        }
+    }
+
+    private func personalBestRow(title: String, icon: String, score: Int, color: Color) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(color)
+                .frame(width: 34, height: 34)
+                .background(color.opacity(0.15), in: Circle())
+
+            Text(title)
+                .font(.body.weight(.semibold))
+                .foregroundStyle(ArcadeTheme.textPrimary)
+
+            Spacer()
+
+            Text("\(score)")
+                .font(.headline.bold())
+                .foregroundStyle(color)
+
+            Text("pts")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(ArcadeTheme.textTertiary)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 14)
+    }
+
+    // MARK: - Charts
+
+    private var chartsSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            sectionHeader("Performance", icon: "chart.bar.fill")
+
+            ModeBarChart(
+                title: "Tap Frenzy",
+                sessions: historyManager.sessions.filter { $0.mode == "Tap Frenzy" },
+                color: ArcadeTheme.tapFrenzy
+            )
+
+            ModeBarChart(
+                title: "Light It Up",
+                sessions: historyManager.sessions.filter { $0.mode == "Light It Up" },
+                color: ArcadeTheme.lightItUp
+            )
+
+            ModeBarChart(
+                title: "Quiz Rush",
+                sessions: historyManager.sessions.filter { $0.mode == "Quiz Rush" },
+                color: ArcadeTheme.quizRush
+            )
+        }
+    }
+
+    // MARK: - Recent
+
+    private var recentGamesCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            sectionHeader("Recent Games", icon: "clock.fill")
+
+            if historyManager.sessions.isEmpty {
+                emptyState
+            } else {
+                VStack(spacing: 0) {
+                    ForEach(Array(historyManager.sessions.reversed().prefix(10).enumerated()), id: \.element.id) { index, session in
+                        recentRow(session)
+                        if index < min(9, historyManager.sessions.count - 1) {
+                            Divider().overlay(ArcadeTheme.border)
+                        }
+                    }
+                }
+                .background(ArcadeTheme.surface, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .strokeBorder(ArcadeTheme.border, lineWidth: 1)
+                )
+            }
+        }
+    }
+
+    private func recentRow(_ session: GameSession) -> some View {
+        let color = modeColor(session.mode)
+        return HStack(spacing: 12) {
+            Circle()
+                .fill(color.opacity(0.2))
+                .frame(width: 10, height: 10)
+                .overlay(Circle().strokeBorder(color.opacity(0.7), lineWidth: 1))
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text(session.mode)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(ArcadeTheme.textPrimary)
+                Text(formatDate(session.timestamp))
+                    .font(.caption)
+                    .foregroundStyle(ArcadeTheme.textTertiary)
+            }
+
+            Spacer()
+
+            Text("\(session.score) pts")
+                .font(.subheadline.bold())
+                .foregroundStyle(color)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(color.opacity(0.12), in: Capsule())
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
+    }
+
+    private var emptyState: some View {
+        VStack(spacing: 10) {
+            Image(systemName: "chart.bar.doc.horizontal")
+                .font(.system(size: 28))
+                .foregroundStyle(ArcadeTheme.accentSecondary)
+            Text("No games yet")
+                .font(.headline)
+                .foregroundStyle(ArcadeTheme.textPrimary)
+            Text("Finish a run to see your stats here.")
+                .font(.caption)
+                .foregroundStyle(ArcadeTheme.textSecondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 28)
+        .background(ArcadeTheme.surface, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .strokeBorder(ArcadeTheme.border, lineWidth: 1)
+        )
+    }
+
+    private func sectionHeader(_ title: String, icon: String) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: icon)
+                .foregroundStyle(ArcadeTheme.accent)
+            Text(title)
+                .font(.subheadline.weight(.bold))
+                .foregroundStyle(ArcadeTheme.textSecondary)
+        }
+        .padding(.leading, 4)
+    }
+
     private func modeColor(_ mode: String) -> Color {
         switch mode {
-        case "Tap Frenzy": return .cyan
-        case "Light It Up": return .orange
-        case "Quiz Rush": return .purple
-        default: return .white
+        case "Tap Frenzy": return ArcadeTheme.tapFrenzy
+        case "Light It Up": return ArcadeTheme.lightItUp
+        case "Quiz Rush": return ArcadeTheme.quizRush
+        default: return ArcadeTheme.accent
         }
     }
-    
+
+    private func shortModeName(_ mode: String) -> String {
+        switch mode {
+        case "Tap Frenzy": return "Tap"
+        case "Light It Up": return "Light"
+        case "Quiz Rush": return "Quiz"
+        default: return mode == "—" ? "—" : mode
+        }
+    }
+
     private func formatDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .short
-        formatter.timeStyle = .short
-        return formatter.string(from: date)
+        date.formatted(date: .abbreviated, time: .shortened)
     }
 }
 
@@ -264,20 +357,25 @@ struct ModeBarChart: View {
     let title: String
     let sessions: [GameSession]
     let color: Color
-    
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(title)
-                .font(.system(.subheadline, design: .rounded))
-                .fontWeight(.black)
-                .foregroundStyle(.secondary)
-            
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Text(title)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(ArcadeTheme.textPrimary)
+                Spacer()
+                Text(sessions.isEmpty ? "No data" : "Last \(min(6, sessions.count))")
+                    .font(.caption)
+                    .foregroundStyle(ArcadeTheme.textTertiary)
+            }
+
             if sessions.isEmpty {
-                Text("No games completed yet.")
-                    .font(.system(.caption, design: .rounded))
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .padding(.vertical, 28)
+                Text("Play this mode to unlock the chart.")
+                    .font(.caption)
+                    .foregroundStyle(ArcadeTheme.textTertiary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.vertical, 20)
             } else {
                 let suffixData = Array(sessions.suffix(6))
                 Chart {
@@ -286,7 +384,14 @@ struct ModeBarChart: View {
                             x: .value("Game", index + 1),
                             y: .value("Score", session.score)
                         )
-                        .foregroundStyle(color.gradient)
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [color, color.opacity(0.55)],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                        .cornerRadius(6)
                         .annotation(position: .top) {
                             Text("\(session.score)")
                                 .font(.system(size: 10, weight: .bold, design: .rounded))
@@ -294,34 +399,34 @@ struct ModeBarChart: View {
                         }
                     }
                 }
-                .frame(height: 120)
+                .frame(height: 130)
                 .chartXAxis {
                     AxisMarks(values: .automatic) { value in
-                        AxisGridLine(stroke: StrokeStyle(lineWidth: 1)).foregroundStyle(Color.white.opacity(0.06))
-                        AxisTick().foregroundStyle(Color.white.opacity(0.12))
+                        AxisGridLine(stroke: StrokeStyle(lineWidth: 1))
+                            .foregroundStyle(ArcadeTheme.border)
                         AxisValueLabel {
                             if let intVal = value.as(Int.self) {
                                 Text("G\(intVal)")
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(ArcadeTheme.textTertiary)
                             }
                         }
                     }
                 }
                 .chartYAxis {
-                    AxisMarks { value in
-                        AxisGridLine(stroke: StrokeStyle(lineWidth: 1)).foregroundStyle(Color.white.opacity(0.06))
+                    AxisMarks { _ in
+                        AxisGridLine(stroke: StrokeStyle(lineWidth: 1))
+                            .foregroundStyle(ArcadeTheme.border)
                         AxisValueLabel()
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(ArcadeTheme.textTertiary)
                     }
                 }
             }
         }
-        .padding(.all, 16)
-        .background(Color(red: 0.06, green: 0.06, blue: 0.12))
-        .cornerRadius(18)
+        .padding(16)
+        .background(ArcadeTheme.surface, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: 18)
-                .stroke(color.opacity(0.2), lineWidth: 1.5)
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .strokeBorder(color.opacity(0.25), lineWidth: 1)
         )
     }
 }
