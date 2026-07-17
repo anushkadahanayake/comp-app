@@ -1,10 +1,22 @@
 import SwiftUI
 
 struct ContentView: View {
+    @ObservedObject private var auth = AuthService.shared
     @State private var selectedTab: ArcadeTab = .home
     @ObservedObject private var locationService = LocationService.shared
 
     var body: some View {
+        Group {
+            if auth.isSignedIn {
+                mainShell
+            } else {
+                LoginView()
+            }
+        }
+        .preferredColorScheme(.dark)
+    }
+
+    private var mainShell: some View {
         ZStack(alignment: .bottom) {
             Group {
                 switch selectedTab {
@@ -24,7 +36,6 @@ struct ContentView: View {
             ArcadeTabBar(selectedTab: $selectedTab)
         }
         .ignoresSafeArea(.keyboard)
-        .preferredColorScheme(.dark)
         .onAppear {
             locationService.requestPermission()
             locationService.startUpdating()

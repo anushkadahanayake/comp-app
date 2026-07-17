@@ -29,6 +29,10 @@
 		863B62842FD969100088C895 /* AppFeedback.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B62832FD969100088C895 /* AppFeedback.swift */; };
 		863B62862FD96A000088C895 /* LocationCoordinateBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = 863B62852FD96A000088C895 /* LocationCoordinateBridge.m */; };
 		863B628A2FD96B000088C895 /* ArcadeTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B62892FD96B000088C895 /* ArcadeTheme.swift */; };
+		863B62902FD970010088C895 /* PlayerProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B628C2FD970010088C895 /* PlayerProfile.swift */; };
+		863B62912FD970010088C895 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B628D2FD970010088C895 /* AuthService.swift */; };
+		863B62922FD970010088C895 /* PlayerStatsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B628E2FD970010088C895 /* PlayerStatsStore.swift */; };
+		863B62932FD970010088C895 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B628F2FD970010088C895 /* LoginView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -56,6 +60,10 @@
 		863B62872FD96A000088C895 /* LocationCoordinateBridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LocationCoordinateBridge.h; sourceTree = "<group>"; };
 		863B62882FD96A000088C895 /* comp_ios-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "comp_ios-Bridging-Header.h"; sourceTree = "<group>"; };
 		863B62892FD96B000088C895 /* ArcadeTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArcadeTheme.swift; sourceTree = "<group>"; };
+		863B628C2FD970010088C895 /* PlayerProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerProfile.swift; sourceTree = "<group>"; };
+		863B628D2FD970010088C895 /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
+		863B628E2FD970010088C895 /* PlayerStatsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerStatsStore.swift; sourceTree = "<group>"; };
+		863B628F2FD970010088C895 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		868946602FD95D1B005E1193 /* comp_ios.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = comp_ios.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -86,6 +94,7 @@
 				863B627F2FD968000088C895 /* GameCatalog.swift */,
 				863B62892FD96B000088C895 /* ArcadeTheme.swift */,
 				863B62752FD967E00088C895 /* GameSession.swift */,
+				863B628C2FD970010088C895 /* PlayerProfile.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -95,6 +104,7 @@
 			children = (
 				863B62282FD964320088C895 /* ContentView.swift */,
 				863B62812FD969000088C895 /* ArcadeTabBar.swift */,
+				863B628F2FD970010088C895 /* LoginView.swift */,
 				863B62502FD964320088C895 /* HomeView.swift */,
 				863B62562FD964320088C895 /* SettingsView.swift */,
 				863B62522FD964320088C895 /* TapFrenzyView.swift */,
@@ -115,6 +125,8 @@
 				863B62852FD96A000088C895 /* LocationCoordinateBridge.m */,
 				863B62792FD967E00088C895 /* NotificationService.swift */,
 				863B62832FD969100088C895 /* AppFeedback.swift */,
+				863B628D2FD970010088C895 /* AuthService.swift */,
+				863B628E2FD970010088C895 /* PlayerStatsStore.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -234,6 +246,10 @@
 				863B62822FD969000088C895 /* ArcadeTabBar.swift in Sources */,
 				863B62842FD969100088C895 /* AppFeedback.swift in Sources */,
 				863B62862FD96A000088C895 /* LocationCoordinateBridge.m in Sources */,
+				863B62902FD970010088C895 /* PlayerProfile.swift in Sources */,
+				863B62912FD970010088C895 /* AuthService.swift in Sources */,
+				863B62922FD970010088C895 /* PlayerStatsStore.swift in Sources */,
+				863B62932FD970010088C895 /* LoginView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

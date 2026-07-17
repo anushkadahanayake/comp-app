@@ -2,9 +2,8 @@ import SwiftUI
 import Combine
 
 struct HomeView: View {
-    @AppStorage("HighScore_TapFrenzy") private var highScoreTapFrenzy: Int = 0
-    @AppStorage("HighScore_LightItUp") private var highScoreLightItUp: Int = 0
-    @AppStorage("HighScore_QuizRush") private var highScoreQuizRush: Int = 0
+    @ObservedObject private var auth = AuthService.shared
+    @ObservedObject private var statsStore = PlayerStatsStore.shared
 
     private let games = ArcadeGame.all
 
@@ -36,11 +35,8 @@ struct HomeView: View {
     private var isPlayingGame: Bool { activeGameMode != nil }
 
     private func highScore(for game: ArcadeGame) -> Int {
-        switch game.mode {
-        case .tapFrenzy: return highScoreTapFrenzy
-        case .lightItUp: return highScoreLightItUp
-        case .quizRush: return highScoreQuizRush
-        }
+        guard let playerId = auth.currentPlayer?.id else { return 0 }
+        return statsStore.highScore(for: game.mode, playerId: playerId)
     }
 
     var body: some View {
@@ -196,11 +192,20 @@ struct HomeView: View {
                 .offset(y: animateHeader ? 0 : -20)
                 .opacity(animateHeader ? 1.0 : 0.0)
 
-            Text("Tap · Reflex · Trivia")
-                .font(.system(.subheadline, design: .rounded))
-                .fontWeight(.medium)
-                .foregroundStyle(ArcadeTheme.textSecondary)
-                .opacity(animateHeader ? 1.0 : 0.0)
+            Group {
+                if let player = auth.currentPlayer {
+                    Text("Playing as \(player.displayName)")
+                        .font(.system(.subheadline, design: .rounded))
+                        .fontWeight(.semibold)
+                        .foregroundStyle(ArcadeTheme.accentSoft)
+                } else {
+                    Text("Tap · Reflex · Trivia")
+                        .font(.system(.subheadline, design: .rounded))
+                        .fontWeight(.medium)
+                        .foregroundStyle(ArcadeTheme.textSecondary)
+                }
+            }
+            .opacity(animateHeader ? 1.0 : 0.0)
         }
         .padding(.top, 24)
     }
@@ -393,8 +398,11 @@ struct HomeView: View {
         if savedFrenzy == 0 {
             let old = UserDefaults.standard.integer(forKey: "HighScoreKey")
             if old > 0 {
-                highScoreTapFrenzy = old
+                UserDefaults.standard.set(old, forKey: "HighScore_TapFrenzy")
             }
+        }
+        if let playerId = auth.currentPlayer?.id {
+            statsStore.ensureDefaults(for: playerId)
         }
     }
 }

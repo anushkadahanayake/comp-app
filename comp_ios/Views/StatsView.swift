@@ -3,16 +3,34 @@ import Charts
 
 struct StatsView: View {
     @ObservedObject var historyManager = SessionHistoryManager.shared
+    @ObservedObject private var auth = AuthService.shared
+    @ObservedObject private var statsStore = PlayerStatsStore.shared
 
-    @AppStorage("HighScore_TapFrenzy") private var highScoreTapFrenzy: Int = 0
-    @AppStorage("HighScore_LightItUp") private var highScoreLightItUp: Int = 0
-    @AppStorage("HighScore_QuizRush") private var highScoreQuizRush: Int = 0
-
-    private var totalPoints: Int {
-        historyManager.sessions.reduce(0) { $0 + $1.score }
+    private var mySessions: [GameSession] {
+        guard let id = auth.currentPlayer?.id else { return [] }
+        return historyManager.sessions.filter { $0.playerId == id || $0.playerId == nil }
     }
 
-    private var gamesPlayed: Int { historyManager.sessions.count }
+    private var highScoreTapFrenzy: Int {
+        guard let id = auth.currentPlayer?.id else { return 0 }
+        return statsStore.highScore(for: .tapFrenzy, playerId: id)
+    }
+
+    private var highScoreLightItUp: Int {
+        guard let id = auth.currentPlayer?.id else { return 0 }
+        return statsStore.highScore(for: .lightItUp, playerId: id)
+    }
+
+    private var highScoreQuizRush: Int {
+        guard let id = auth.currentPlayer?.id else { return 0 }
+        return statsStore.highScore(for: .quizRush, playerId: id)
+    }
+
+    private var totalPoints: Int {
+        mySessions.reduce(0) { $0 + $1.score }
+    }
+
+    private var gamesPlayed: Int { mySessions.count }
 
     private var averageScore: Int {
         guard gamesPlayed > 0 else { return 0 }
@@ -20,8 +38,14 @@ struct StatsView: View {
     }
 
     private var favoriteMode: String {
-        let counts = Dictionary(grouping: historyManager.sessions, by: \.mode).mapValues(\.count)
+        let counts = Dictionary(grouping: mySessions, by: \.mode).mapValues(\.count)
         return counts.max(by: { $0.value < $1.value })?.key ?? "—"
+    }
+
+    private var leaderboard: [LeaderboardEntry] {
+        _ = statsStore.revision
+        _ = historyManager.sessions.count
+        return statsStore.leaderboard()
     }
 
     private var rank: (title: String, icon: String, nextAt: Int, progress: Double) {
@@ -51,6 +75,7 @@ struct StatsView: View {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 20) {
                     profileCard
+                    leaderboardCard
                     summaryGrid
                     personalBestsCard
                     chartsSection
@@ -75,19 +100,25 @@ struct StatsView: View {
                         .fill(ArcadeTheme.brandGradient)
                         .frame(width: 72, height: 72)
 
-                    Image(systemName: rank.icon)
+                    Image(systemName: auth.currentPlayer?.avatarSymbol ?? rank.icon)
                         .font(.system(size: 30, weight: .semibold))
                         .foregroundStyle(.white)
                 }
 
                 VStack(alignment: .leading, spacing: 6) {
-                    Text(rank.title)
+                    Text(auth.currentPlayer?.displayName ?? "Player")
                         .font(.title3.bold())
                         .foregroundStyle(ArcadeTheme.textPrimary)
 
-                    Text("\(totalPoints) Total XP")
+                    Text("\(rank.title) · \(totalPoints) XP")
                         .font(.subheadline.weight(.medium))
                         .foregroundStyle(ArcadeTheme.textSecondary)
+
+                    if let username = auth.currentPlayer?.username {
+                        Text("@\(username)")
+                            .font(.caption2.weight(.semibold))
+                            .foregroundStyle(ArcadeTheme.accentSoft)
+                    }
 
                     if rank.progress < 1 {
                         VStack(alignment: .leading, spacing: 4) {
@@ -113,6 +144,80 @@ struct StatsView: View {
             RoundedRectangle(cornerRadius: 22, style: .continuous)
                 .strokeBorder(ArcadeTheme.borderStrong, lineWidth: 1)
         )
+    }
+
+    // MARK: - Leaderboard
+
+    private var leaderboardCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            sectionHeader("Top Players", icon: "trophy.fill")
+
+            if leaderboard.isEmpty {
+                Text("Play a few games to build the leaderboard.")
+                    .font(.subheadline)
+                    .foregroundStyle(ArcadeTheme.textSecondary)
+                    .padding(.vertical, 8)
+            } else {
+                VStack(spacing: 0) {
+                    ForEach(Array(leaderboard.prefix(8).enumerated()), id: \.element.id) { index, entry in
+                        if index > 0 {
+                            Divider().overlay(ArcadeTheme.border)
+                        }
+                        leaderboardRow(entry)
+                    }
+                }
+            }
+        }
+        .padding(16)
+        .background(ArcadeTheme.surface, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .strokeBorder(ArcadeTheme.borderStrong, lineWidth: 1)
+        )
+    }
+
+    private func leaderboardRow(_ entry: LeaderboardEntry) -> some View {
+        let isMe = entry.playerId == auth.currentPlayer?.id
+        return HStack(spacing: 12) {
+            Text("#\(entry.rank)")
+                .font(.caption.bold())
+                .foregroundStyle(entry.rank <= 3 ? ArcadeTheme.accentSoft : ArcadeTheme.textTertiary)
+                .frame(width: 28, alignment: .leading)
+
+            Image(systemName: entry.avatarSymbol)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(width: 32, height: 32)
+                .background(ArcadeTheme.accent.opacity(isMe ? 0.55 : 0.28), in: Circle())
+
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 6) {
+                    Text(entry.displayName)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(ArcadeTheme.textPrimary)
+                    if isMe {
+                        Text("YOU")
+                            .font(.caption2.bold())
+                            .foregroundStyle(ArcadeTheme.accentSoft)
+                    }
+                }
+                Text("\(entry.gamesPlayed) games · best \(entry.bestScore)")
+                    .font(.caption2)
+                    .foregroundStyle(ArcadeTheme.textTertiary)
+            }
+
+            Spacer()
+
+            VStack(alignment: .trailing, spacing: 2) {
+                Text("\(entry.totalXP)")
+                    .font(.subheadline.bold())
+                    .foregroundStyle(ArcadeTheme.textPrimary)
+                Text("XP")
+                    .font(.caption2)
+                    .foregroundStyle(ArcadeTheme.textTertiary)
+            }
+        }
+        .padding(.vertical, 10)
     }
 
     // MARK: - Summary
@@ -223,19 +328,19 @@ struct StatsView: View {
 
             ModeBarChart(
                 title: "Tap Frenzy",
-                sessions: historyManager.sessions.filter { $0.mode == "Tap Frenzy" },
+                sessions: mySessions.filter { $0.mode == "Tap Frenzy" },
                 color: ArcadeTheme.tapFrenzy
             )
 
             ModeBarChart(
                 title: "Light It Up",
-                sessions: historyManager.sessions.filter { $0.mode == "Light It Up" },
+                sessions: mySessions.filter { $0.mode == "Light It Up" },
                 color: ArcadeTheme.lightItUp
             )
 
             ModeBarChart(
                 title: "Quiz Rush",
-                sessions: historyManager.sessions.filter { $0.mode == "Quiz Rush" },
+                sessions: mySessions.filter { $0.mode == "Quiz Rush" },
                 color: ArcadeTheme.quizRush
             )
         }
@@ -247,13 +352,13 @@ struct StatsView: View {
         VStack(alignment: .leading, spacing: 12) {
             sectionHeader("Recent Games", icon: "clock.fill")
 
-            if historyManager.sessions.isEmpty {
+            if mySessions.isEmpty {
                 emptyState
             } else {
                 VStack(spacing: 0) {
-                    ForEach(Array(historyManager.sessions.reversed().prefix(10).enumerated()), id: \.element.id) { index, session in
+                    ForEach(Array(mySessions.reversed().prefix(10).enumerated()), id: \.element.id) { index, session in
                         recentRow(session)
-                        if index < min(9, historyManager.sessions.count - 1) {
+                        if index < min(9, mySessions.count - 1) {
                             Divider().overlay(ArcadeTheme.border)
                         }
                     }

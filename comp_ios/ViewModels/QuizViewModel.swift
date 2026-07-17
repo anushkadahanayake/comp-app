@@ -121,7 +121,10 @@ final class QuizViewModel: ObservableObject {
     @Published var wrongHighlightIndex: String?
     @Published var shakeTrigger: CGFloat = 0.0
 
-    @AppStorage("HighScore_QuizRush") var highScoreQuizRush: Int = 0
+    var highScoreQuizRush: Int {
+        guard let id = AuthService.shared.currentPlayer?.id else { return 0 }
+        return PlayerStatsStore.shared.highScore(for: .quizRush, playerId: id)
+    }
 
     enum HapticType {
         case success
@@ -381,9 +384,12 @@ final class QuizViewModel: ObservableObject {
         index = max(questions.count, index)
         viewState = .loaded
 
-        if score > highScoreQuizRush {
-            highScoreQuizRush = score
-            isNewHighScore = true
+        if let playerId = AuthService.shared.currentPlayer?.id {
+            isNewHighScore = PlayerStatsStore.shared.updateHighScoreIfNeeded(
+                score: score,
+                mode: .quizRush,
+                playerId: playerId
+            )
         } else {
             isNewHighScore = false
         }

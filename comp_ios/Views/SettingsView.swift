@@ -8,13 +8,13 @@ struct SettingsView: View {
     @AppStorage("HapticsEnabled") private var hapticsEnabled = true
     @AppStorage("SaveLocationWithSessions") private var saveLocationWithSessions = true
 
-    @AppStorage("HighScore_TapFrenzy") private var highScoreTapFrenzy: Int = 0
-    @AppStorage("HighScore_LightItUp") private var highScoreLightItUp: Int = 0
-    @AppStorage("HighScore_QuizRush") private var highScoreQuizRush: Int = 0
-
     @ObservedObject var notifications = NotificationService.shared
     @ObservedObject var locationService = LocationService.shared
+    @ObservedObject private var auth = AuthService.shared
+    @ObservedObject private var statsStore = PlayerStatsStore.shared
     @State private var showResetConfirmation = false
+    @State private var showSignOutConfirmation = false
+    @State private var editName = ""
 
     private var challengeTimeBinding: Binding<Date> {
         Binding<Date>(
@@ -38,6 +38,7 @@ struct SettingsView: View {
                 .ignoresSafeArea()
 
             List {
+                profileSection
                 gameplaySection
                 soundHapticsSection
                 notificationsSection
@@ -54,20 +55,73 @@ struct SettingsView: View {
             isPresented: $showResetConfirmation,
             titleVisibility: .visible
         ) {
-            Button("Reset Everything", role: .destructive) {
-                highScoreTapFrenzy = 0
-                highScoreLightItUp = 0
-                highScoreQuizRush = 0
-                SessionHistoryManager.shared.clearAll()
+            Button("Reset My Stats", role: .destructive) {
+                if let id = auth.currentPlayer?.id {
+                    statsStore.resetScores(for: id)
+                    SessionHistoryManager.shared.clearSessions(for: id)
+                }
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("This will permanently clear your scores, history, and map pins. This cannot be undone.")
+            Text("This clears only this player’s scores, history, and map pins.")
+        }
+        .confirmationDialog(
+            "Log Out?",
+            isPresented: $showSignOutConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Log Out", role: .destructive) {
+                auth.signOut()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("You’ll return to the login screen. Other accounts stay on this device.")
         }
         .onAppear {
             notifications.checkAuthorizationStatus()
             locationService.refreshLocation()
+            editName = auth.currentPlayer?.displayName ?? ""
         }
+    }
+
+    private var profileSection: some View {
+        Section(
+            header: sectionHeader("PLAYER PROFILE", color: ArcadeTheme.accent),
+            footer: Text("Accounts are saved on this device only. Sign out to log in as another player.")
+                .foregroundStyle(.secondary)
+        ) {
+            if let player = auth.currentPlayer {
+                HStack(spacing: 12) {
+                    Image(systemName: player.avatarSymbol)
+                        .foregroundStyle(.white)
+                        .frame(width: 40, height: 40)
+                        .background(ArcadeTheme.accent.opacity(0.4), in: Circle())
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(player.displayName)
+                            .font(.headline)
+                        Text(player.username)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
+                TextField("Display name", text: $editName)
+                    .onSubmit {
+                        auth.updateDisplayName(editName)
+                    }
+
+                Button("Save Display Name") {
+                    auth.updateDisplayName(editName)
+                }
+                .foregroundStyle(ArcadeTheme.accent)
+
+                Button("Log Out", role: .destructive) {
+                    showSignOutConfirmation = true
+                }
+            }
+        }
+        .listRowBackground(rowBackground)
     }
 
     private var gameplaySection: some View {
@@ -265,7 +319,7 @@ struct SettingsView: View {
             } label: {
                 HStack {
                     Spacer()
-                    Text("Reset All Scores & Stats")
+                    Text("Reset My Scores & Stats")
                         .fontWeight(.black)
                     Spacer()
                 }

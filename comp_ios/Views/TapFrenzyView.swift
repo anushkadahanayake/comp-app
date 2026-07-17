@@ -11,7 +11,13 @@ struct FloatingScore: Identifiable {
 
 struct TapFrenzyView: View {
     @StateObject private var vm = GameViewModel()
-    @AppStorage("HighScore_TapFrenzy") private var highScoreTapFrenzy: Int = 0
+    @ObservedObject private var auth = AuthService.shared
+    @ObservedObject private var statsStore = PlayerStatsStore.shared
+
+    private var highScoreTapFrenzy: Int {
+        guard let id = auth.currentPlayer?.id else { return 0 }
+        return statsStore.highScore(for: .tapFrenzy, playerId: id)
+    }
     @Environment(\.dismiss) private var dismiss
     
     @State private var floatingScores: [FloatingScore] = []
@@ -390,12 +396,15 @@ struct TapFrenzyView: View {
         .onChange(of: vm.state) { _, newState in
             if newState == .finished {
                 DispatchQueue.main.async {
-                    if vm.tapCount > highScoreTapFrenzy {
-                        highScoreTapFrenzy = vm.tapCount
-                        vm.isNewHighScore = true
-                    } else {
+                    guard let playerId = auth.currentPlayer?.id else {
                         vm.isNewHighScore = false
+                        return
                     }
+                    vm.isNewHighScore = statsStore.updateHighScoreIfNeeded(
+                        score: vm.tapCount,
+                        mode: .tapFrenzy,
+                        playerId: playerId
+                    )
                 }
             }
         }

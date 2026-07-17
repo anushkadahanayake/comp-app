@@ -2,7 +2,13 @@ import SwiftUI
 
 struct QuizRushView: View {
     @StateObject private var vm = QuizViewModel()
-    @AppStorage("HighScore_QuizRush") private var highScoreQuizRush: Int = 0
+    @ObservedObject private var auth = AuthService.shared
+    @ObservedObject private var statsStore = PlayerStatsStore.shared
+
+    private var highScoreQuizRush: Int {
+        guard let id = auth.currentPlayer?.id else { return 0 }
+        return statsStore.highScore(for: .quizRush, playerId: id)
+    }
     @Environment(\.dismiss) private var dismiss
     
     @State private var scaleCombo = false

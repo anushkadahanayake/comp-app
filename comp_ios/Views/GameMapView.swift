@@ -41,12 +41,13 @@ struct GameMapView: View {
     private var pins: [MapPinItem] {
         historyManager.sessions.compactMap { session -> MapPinItem? in
             guard let lat = session.latitude, let lon = session.longitude else { return nil }
+            let playerBit = session.playerName.map { " · \($0)" } ?? ""
             return MapPinItem(
                 id: session.id,
                 latitude: lat,
                 longitude: lon,
                 title: session.mode,
-                subtitle: "Score: \(session.score) pts",
+                subtitle: "Score: \(session.score) pts\(playerBit)",
                 mode: session.mode,
                 date: session.timestamp
             )

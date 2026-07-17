@@ -12,7 +12,10 @@ struct ArcadeGame: Identifiable {
     var title: String { mode.rawValue }
 
     func highScore(from defaults: UserDefaults = .standard) -> Int {
-        defaults.integer(forKey: highScoreKey)
+        if let playerId = AuthService.shared.currentPlayer?.id {
+            return PlayerStatsStore.shared.highScore(for: mode, playerId: playerId)
+        }
+        return defaults.integer(forKey: highScoreKey)
     }
 
     @ViewBuilder
