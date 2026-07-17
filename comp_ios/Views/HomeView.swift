@@ -176,42 +176,30 @@ struct HomeView: View {
 
     private var headerSection: some View {
         VStack(spacing: 12) {
-            ZStack {
-                Circle()
-                    .fill(
-                        LinearGradient(colors: [.blue, .cyan], startPoint: .topLeading, endPoint: .bottomTrailing)
-                    )
-                    .frame(width: 90, height: 90)
-                    .shadow(color: .cyan.opacity(0.6), radius: 20)
-
-                Image("AppLogo")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 72, height: 72)
-                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16, style: .continuous)
-                            .strokeBorder(.white.opacity(0.2), lineWidth: 1)
-                    )
-            }
-            .scaleEffect(animateHeader ? 1.0 : 0.5)
-            .opacity(animateHeader ? 1.0 : 0.0)
+            Image("AppLogo")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 76, height: 76)
+                .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .strokeBorder(ArcadeTheme.borderStrong, lineWidth: 1)
+                )
+                .shadow(color: .black.opacity(0.35), radius: 10, y: 4)
+                .scaleEffect(animateHeader ? 1.0 : 0.5)
+                .opacity(animateHeader ? 1.0 : 0.0)
 
             Text("ARCADE FRENZY")
                 .font(.system(.largeTitle, design: .rounded))
-                .fontWeight(.black)
-                .foregroundStyle(
-                    LinearGradient(colors: [.cyan, .purple], startPoint: .leading, endPoint: .trailing)
-                )
-                .shadow(color: .cyan.opacity(0.5), radius: 10)
+                .fontWeight(.heavy)
+                .foregroundStyle(ArcadeTheme.textPrimary)
                 .offset(y: animateHeader ? 0 : -20)
                 .opacity(animateHeader ? 1.0 : 0.0)
 
-            Text("TAP SPEED • REFLEX • TRIVIA RUSH")
-                .font(.system(.caption, design: .rounded))
-                .fontWeight(.bold)
-                .foregroundStyle(.cyan)
-                .tracking(3)
+            Text("Tap · Reflex · Trivia")
+                .font(.system(.subheadline, design: .rounded))
+                .fontWeight(.medium)
+                .foregroundStyle(ArcadeTheme.textSecondary)
                 .opacity(animateHeader ? 1.0 : 0.0)
         }
         .padding(.top, 24)
@@ -222,29 +210,21 @@ struct HomeView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text("Game Library")
                     .font(.title3.bold())
-                    .foregroundStyle(.white)
-                Text("Tap a game image to play • 3 separate games")
+                    .foregroundStyle(ArcadeTheme.textPrimary)
+                Text("Tap a game card to play")
                     .font(.caption)
-                    .foregroundStyle(.white.opacity(0.65))
+                    .foregroundStyle(ArcadeTheme.textSecondary)
             }
 
             Spacer()
 
             Text("\(games.count) Games")
-                .font(.caption.bold())
-                .foregroundStyle(.white)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(ArcadeTheme.textPrimary)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
-                .background(
-                    Capsule()
-                        .fill(
-                            LinearGradient(colors: [.blue.opacity(0.8), .purple.opacity(0.8)], startPoint: .leading, endPoint: .trailing)
-                        )
-                )
-                .overlay(
-                    Capsule()
-                        .strokeBorder(.white.opacity(0.15))
-                )
+                .background(ArcadeTheme.surfaceElevated, in: Capsule())
+                .overlay(Capsule().strokeBorder(ArcadeTheme.border))
         }
         .opacity(animateCarousel ? 1 : 0)
         .offset(y: animateCarousel ? 0 : 20)
@@ -299,15 +279,15 @@ struct HomeView: View {
             HStack(spacing: 8) {
                 ForEach(Array(games.enumerated()), id: \.element.id) { index, _ in
                     Capsule()
-                        .fill(index == selectedIndex ? Color.cyan : Color.white.opacity(0.25))
-                        .frame(width: index == selectedIndex ? 24 : 8, height: 8)
+                        .fill(index == selectedIndex ? ArcadeTheme.accent : ArcadeTheme.textTertiary.opacity(0.5))
+                        .frame(width: index == selectedIndex ? 22 : 7, height: 7)
                         .animation(.easeInOut(duration: 0.25), value: selectedIndex)
                 }
             }
 
             Text("\(selectedIndex + 1) of \(games.count) • \(selectedGame.title)")
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.white.opacity(0.85))
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(ArcadeTheme.textSecondary)
         }
         .opacity(animateCarousel ? 1 : 0)
         .offset(y: animateCarousel ? 0 : 30)
@@ -325,21 +305,17 @@ struct HomeView: View {
                             Text(game.title)
                                 .lineLimit(1)
                         }
-                        .font(.caption.bold())
-                        .foregroundStyle(selectedIndex == index ? .white : .white.opacity(0.75))
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(selectedIndex == index ? ArcadeTheme.backgroundDeep : ArcadeTheme.textSecondary)
                         .padding(.horizontal, 14)
                         .padding(.vertical, 10)
                         .background(
                             Capsule()
-                                .fill(
-                                    selectedIndex == index
-                                        ? LinearGradient(colors: game.gradient, startPoint: .leading, endPoint: .trailing)
-                                        : LinearGradient(colors: [.white.opacity(0.08), .white.opacity(0.08)], startPoint: .leading, endPoint: .trailing)
-                                )
+                                .fill(selectedIndex == index ? ArcadeTheme.accent : ArcadeTheme.surfaceElevated)
                         )
                         .overlay(
                             Capsule()
-                                .strokeBorder(.white.opacity(selectedIndex == index ? 0.25 : 0.08))
+                                .strokeBorder(ArcadeTheme.border)
                         )
                     }
                     .buttonStyle(.plain)
@@ -355,41 +331,41 @@ struct HomeView: View {
                 VStack(alignment: .leading, spacing: 6) {
                     Text(selectedGame.title)
                         .font(.title2.bold())
-                        .foregroundStyle(.white)
+                        .foregroundStyle(ArcadeTheme.textPrimary)
                     Text(selectedGame.subtitle)
                         .font(.subheadline)
-                        .foregroundStyle(.white.opacity(0.75))
+                        .foregroundStyle(ArcadeTheme.textSecondary)
                 }
 
                 Spacer()
 
                 VStack(alignment: .trailing, spacing: 4) {
                     Text("BEST")
-                        .font(.caption2.bold())
-                        .foregroundStyle(.cyan)
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(ArcadeTheme.accent)
                     Text("\(highScore(for: selectedGame))")
                         .font(.title3.bold())
-                        .foregroundStyle(.white)
+                        .foregroundStyle(ArcadeTheme.textPrimary)
                 }
             }
 
             HStack(spacing: 10) {
                 Label(isAutoScrolling ? "Auto-scroll on" : "Auto-scroll paused", systemImage: isAutoScrolling ? "play.circle.fill" : "pause.circle.fill")
                     .font(.caption)
-                    .foregroundStyle(.white.opacity(0.7))
+                    .foregroundStyle(ArcadeTheme.textTertiary)
 
                 Spacer()
 
-                Text("Tap image or Play — opens only that game")
+                Text("Tap card or Play")
                     .font(.caption)
-                    .foregroundStyle(.white.opacity(0.55))
+                    .foregroundStyle(ArcadeTheme.textTertiary)
             }
         }
         .padding(16)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .background(ArcadeTheme.surface, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .strokeBorder(.white.opacity(0.08))
+                .strokeBorder(ArcadeTheme.border)
         )
     }
 
@@ -403,14 +379,11 @@ struct HomeView: View {
                     .fontWeight(.bold)
             }
             .font(.headline)
-            .foregroundStyle(.white)
+            .foregroundStyle(ArcadeTheme.backgroundDeep)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 16)
-            .background(
-                LinearGradient(colors: selectedGame.gradient, startPoint: .leading, endPoint: .trailing),
-                in: RoundedRectangle(cornerRadius: 16, style: .continuous)
-            )
-            .shadow(color: selectedGame.gradient.first?.opacity(0.35) ?? .clear, radius: 14, y: 8)
+            .background(ArcadeTheme.brandGradient, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .shadow(color: ArcadeTheme.accent.opacity(0.25), radius: 10, y: 4)
         }
         .buttonStyle(.plain)
     }
@@ -458,103 +431,79 @@ struct GameHeroCard: View {
                     Spacer()
 
                     Text(isSelected ? "TAP TO PLAY" : "TAP")
-                        .font(.caption2.bold())
-                        .foregroundStyle(.black)
+                        .font(.caption2.weight(.bold))
+                        .foregroundStyle(ArcadeTheme.backgroundDeep)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 5)
-                        .background(isSelected ? Color.cyan : Color.white.opacity(0.85), in: Capsule())
+                        .background(isSelected ? ArcadeTheme.accent : Color.white.opacity(0.9), in: Capsule())
                 }
 
                 Text(game.title)
                     .font(.title.bold())
-                    .foregroundStyle(.white)
+                    .foregroundStyle(ArcadeTheme.textPrimary)
 
                 Text(game.subtitle)
                     .font(.subheadline)
-                    .foregroundStyle(.white.opacity(0.88))
+                    .foregroundStyle(ArcadeTheme.textSecondary)
             }
             .padding(18)
         }
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .background(ArcadeTheme.surface, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
         .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .strokeBorder(isSelected ? Color.cyan.opacity(0.8) : .white.opacity(0.10), lineWidth: isSelected ? 2 : 1)
+                .strokeBorder(isSelected ? ArcadeTheme.accent.opacity(0.7) : ArcadeTheme.border, lineWidth: isSelected ? 1.5 : 1)
         )
-        .scaleEffect(isSelected ? 1.0 : 0.96)
-        .animation(.spring(response: 0.4, dampingFraction: 0.82), value: isSelected)
-        .shadow(color: .black.opacity(isSelected ? 0.45 : 0.25), radius: isSelected ? 18 : 10, y: 10)
+        .scaleEffect(isSelected ? 1.0 : 0.97)
+        .animation(.easeOut(duration: 0.2), value: isSelected)
+        .shadow(color: .black.opacity(0.28), radius: isSelected ? 14 : 8, y: 6)
     }
 }
 
-// MARK: - Lava Plasma Background View
+// MARK: - Soft ambient background (eye-friendly, low saturation)
 struct LavaPlasmaBackgroundView: View {
-    @State private var animateBlob1 = false
-    @State private var animateBlob2 = false
-    @State private var animateBlob3 = false
-    @State private var animateBlob4 = false
+    @State private var animate = false
 
     var body: some View {
         ZStack {
-            Color(red: 0.02, green: 0.01, blue: 0.04)
+            ArcadeTheme.backgroundDeep
                 .ignoresSafeArea()
 
-            ZStack {
-                Circle()
-                    .fill(Color(red: 0.75, green: 0.05, blue: 0.05).opacity(0.42))
-                    .frame(width: 360, height: 360)
-                    .offset(x: animateBlob1 ? -70 : 70, y: animateBlob1 ? -110 : 110)
-                    .scaleEffect(animateBlob1 ? 1.12 : 0.88)
-                    .blur(radius: 60)
+            Circle()
+                .fill(ArcadeTheme.ambientA)
+                .frame(width: 340, height: 340)
+                .offset(x: animate ? -40 : 50, y: animate ? -90 : -40)
+                .blur(radius: 70)
 
-                Circle()
-                    .fill(Color(red: 0.95, green: 0.3, blue: 0.0).opacity(0.38))
-                    .frame(width: 320, height: 320)
-                    .offset(x: animateBlob2 ? 80 : -80, y: animateBlob2 ? 60 : -60)
-                    .scaleEffect(animateBlob2 ? 0.92 : 1.15)
-                    .blur(radius: 50)
+            Circle()
+                .fill(ArcadeTheme.ambientB)
+                .frame(width: 300, height: 300)
+                .offset(x: animate ? 60 : -40, y: animate ? 80 : 40)
+                .blur(radius: 65)
 
-                Circle()
-                    .fill(Color(red: 0.95, green: 0.65, blue: 0.0).opacity(0.28))
-                    .frame(width: 270, height: 270)
-                    .offset(x: animateBlob3 ? -90 : 90, y: animateBlob3 ? 70 : -70)
-                    .scaleEffect(animateBlob3 ? 1.2 : 0.85)
-                    .blur(radius: 45)
-
-                Circle()
-                    .fill(Color(red: 0.85, green: 0.0, blue: 0.45).opacity(0.22))
-                    .frame(width: 240, height: 240)
-                    .offset(x: animateBlob4 ? 50 : -50, y: animateBlob4 ? -90 : 90)
-                    .scaleEffect(animateBlob4 ? 0.88 : 1.08)
-                    .blur(radius: 40)
-            }
-            .onAppear {
-                withAnimation(.easeInOut(duration: 8.0).repeatForever(autoreverses: true)) {
-                    animateBlob1.toggle()
-                }
-                withAnimation(.easeInOut(duration: 6.5).repeatForever(autoreverses: true)) {
-                    animateBlob2.toggle()
-                }
-                withAnimation(.easeInOut(duration: 9.0).repeatForever(autoreverses: true)) {
-                    animateBlob3.toggle()
-                }
-                withAnimation(.easeInOut(duration: 5.5).repeatForever(autoreverses: true)) {
-                    animateBlob4.toggle()
-                }
+            Circle()
+                .fill(ArcadeTheme.ambientC)
+                .frame(width: 240, height: 240)
+                .offset(x: animate ? -30 : 40, y: animate ? 20 : -60)
+                .blur(radius: 55)
+        }
+        .onAppear {
+            withAnimation(.easeInOut(duration: 10).repeatForever(autoreverses: true)) {
+                animate = true
             }
         }
     }
 }
 
-// MARK: - Ember Sparkles View
+// Soft dust motes — much quieter than neon embers
 struct EmberSparklesView: View {
-    private let particles = (0..<24).map { _ in
+    private let particles = (0..<10).map { _ in
         Ember(
             id: UUID(),
             x: CGFloat.random(in: 10...380),
-            size: CGFloat.random(in: 3...7),
-            speed: Double.random(in: 6.0...12.0),
-            delay: Double.random(in: 0.0...4.0)
+            size: CGFloat.random(in: 2...4),
+            speed: Double.random(in: 8.0...14.0),
+            delay: Double.random(in: 0.0...5.0)
         )
     }
 
@@ -567,6 +516,7 @@ struct EmberSparklesView: View {
             }
         }
         .ignoresSafeArea()
+        .allowsHitTesting(false)
     }
 }
 
@@ -583,21 +533,13 @@ struct EmberItemView: View {
     let containerHeight: CGFloat
 
     @State private var offset: CGFloat = 0
-    @State private var opacity: Double = 0.85
-    @State private var sway: CGFloat = 0
+    @State private var opacity: Double = 0.35
 
     var body: some View {
         Circle()
-            .fill(
-                RadialGradient(
-                    colors: [Color(red: 1.0, green: 0.65, blue: 0.1), Color(red: 0.95, green: 0.2, blue: 0.0), .clear],
-                    center: .center,
-                    startRadius: 0,
-                    endRadius: ember.size
-                )
-            )
-            .frame(width: ember.size * 2, height: ember.size * 2)
-            .position(x: ember.x + sway, y: containerHeight + 20 - offset)
+            .fill(ArcadeTheme.accent.opacity(0.45))
+            .frame(width: ember.size, height: ember.size)
+            .position(x: ember.x, y: containerHeight + 20 - offset)
             .opacity(opacity)
             .onAppear {
                 withAnimation(
@@ -605,16 +547,8 @@ struct EmberItemView: View {
                     .repeatForever(autoreverses: false)
                     .delay(ember.delay)
                 ) {
-                    offset = containerHeight + 100
+                    offset = containerHeight + 80
                     opacity = 0.0
-                }
-
-                withAnimation(
-                    .easeInOut(duration: Double.random(in: 2.0...4.0))
-                    .repeatForever(autoreverses: true)
-                    .delay(ember.delay)
-                ) {
-                    sway = CGFloat.random(in: -25...25)
                 }
             }
     }

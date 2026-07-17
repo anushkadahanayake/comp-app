@@ -22,15 +22,6 @@ enum ArcadeTab: Int, CaseIterable, Identifiable {
         case .settings: return "gearshape.fill"
         }
     }
-
-    var accent: Color {
-        switch self {
-        case .home: return .cyan
-        case .stats: return .purple
-        case .map: return .orange
-        case .settings: return .mint
-        }
-    }
 }
 
 struct ArcadeTabBar: View {
@@ -40,71 +31,43 @@ struct ArcadeTabBar: View {
         HStack(spacing: 0) {
             ForEach(ArcadeTab.allCases) { tab in
                 Button {
-                    withAnimation(.spring(response: 0.35, dampingFraction: 0.72)) {
+                    withAnimation(.easeOut(duration: 0.2)) {
                         selectedTab = tab
                     }
                 } label: {
-                    VStack(spacing: 6) {
-                        ZStack {
-                            if selectedTab == tab {
-                                Circle()
-                                    .fill(tab.accent.opacity(0.22))
-                                    .frame(width: 44, height: 44)
-                                    .blur(radius: 0.5)
-
-                                Circle()
-                                    .stroke(tab.accent.opacity(0.55), lineWidth: 1)
-                                    .frame(width: 44, height: 44)
-                            }
-
-                            Image(systemName: tab.icon)
-                                .font(.system(size: selectedTab == tab ? 20 : 18, weight: .semibold))
-                                .foregroundStyle(selectedTab == tab ? tab.accent : .white.opacity(0.45))
-                                .shadow(color: selectedTab == tab ? tab.accent.opacity(0.7) : .clear, radius: 8)
-                        }
-                        .frame(height: 44)
+                    VStack(spacing: 5) {
+                        Image(systemName: tab.icon)
+                            .font(.system(size: 20, weight: selectedTab == tab ? .semibold : .regular))
+                            .foregroundStyle(selectedTab == tab ? ArcadeTheme.accent : ArcadeTheme.textTertiary)
+                            .frame(height: 26)
 
                         Text(tab.title)
-                            .font(.system(size: 10, weight: .bold, design: .rounded))
-                            .foregroundStyle(selectedTab == tab ? tab.accent : .white.opacity(0.4))
+                            .font(.system(size: 10, weight: .semibold, design: .rounded))
+                            .foregroundStyle(selectedTab == tab ? ArcadeTheme.textPrimary : ArcadeTheme.textTertiary)
                     }
                     .frame(maxWidth: .infinity)
+                    .padding(.vertical, 8)
+                    .background {
+                        if selectedTab == tab {
+                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                .fill(ArcadeTheme.accentMuted)
+                        }
+                    }
                 }
                 .buttonStyle(.plain)
             }
         }
-        .padding(.horizontal, 10)
-        .padding(.top, 10)
-        .padding(.bottom, 8)
+        .padding(.horizontal, 8)
+        .padding(.top, 8)
+        .padding(.bottom, 6)
         .background {
-            RoundedRectangle(cornerRadius: 28, style: .continuous)
-                .fill(.ultraThinMaterial)
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .fill(ArcadeTheme.surface)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 28, style: .continuous)
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    Color.white.opacity(0.08),
-                                    Color.cyan.opacity(0.06),
-                                    Color.purple.opacity(0.08)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
+                    RoundedRectangle(cornerRadius: 22, style: .continuous)
+                        .strokeBorder(ArcadeTheme.border, lineWidth: 1)
                 )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 28, style: .continuous)
-                        .strokeBorder(
-                            LinearGradient(
-                                colors: [.cyan.opacity(0.45), .purple.opacity(0.35), .clear],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: 1
-                        )
-                )
-                .shadow(color: .cyan.opacity(0.18), radius: 16, y: 4)
+                .shadow(color: .black.opacity(0.35), radius: 12, y: 4)
         }
         .padding(.horizontal, 16)
         .padding(.bottom, 6)

@@ -21,11 +21,13 @@ struct QuizRushView: View {
                     loadingView
                 case .failed(let message):
                     errorView(message: message)
+                case .levelComplete:
+                    levelCompleteView
                 case .loaded:
-                    if vm.index < vm.questions.count {
-                        gameplayView
-                    } else {
+                    if vm.isGameOver {
                         gameOverView
+                    } else {
+                        gameplayView
                     }
                 }
             }
@@ -37,18 +39,7 @@ struct QuizRushView: View {
                 Button("Close") {
                     dismiss()
                 }
-                .foregroundStyle(.purple)
-            }
-        }
-        .onChange(of: vm.index) { _, newIndex in
-            // Handle high score updates as soon as the user completes the 10th question
-            if newIndex >= vm.questions.count && !vm.questions.isEmpty {
-                if vm.score > highScoreQuizRush {
-                    highScoreQuizRush = vm.score
-                    vm.isNewHighScore = true
-                } else {
-                    vm.isNewHighScore = false
-                }
+                .foregroundStyle(ArcadeTheme.accentSecondary)
             }
         }
         .onChange(of: vm.streak) { _, newStreak in
@@ -82,12 +73,18 @@ struct QuizRushView: View {
         VStack(spacing: 20) {
             Spacer()
             
-            Text("SELECT YOUR AREA")
+            Text("SELECT CATEGORY FILTER")
                 .font(.system(.title3, design: .rounded))
                 .fontWeight(.black)
                 .foregroundStyle(.white)
-                .shadow(color: .purple.opacity(0.8), radius: 8)
-                .tracking(3)
+                .shadow(color: .black.opacity(0.2), radius: 4)
+                .tracking(2)
+
+            Text("Campaign: Easy → Medium → Hard · Bonus time for fast answers")
+                .font(.caption)
+                .foregroundStyle(.white.opacity(0.65))
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 24)
             
             // Grid of categories
             ScrollView(showsIndicators: false) {
@@ -99,7 +96,7 @@ struct QuizRushView: View {
                             VStack(spacing: 12) {
                                 Image(systemName: category.icon)
                                     .font(.title)
-                                    .foregroundStyle(vm.selectedCategory == category ? .white : .purple)
+                                    .foregroundStyle(vm.selectedCategory == category ? ArcadeTheme.textPrimary : ArcadeTheme.accentSecondary)
                                 
                                 Text(category.rawValue)
                                     .font(.system(.subheadline, design: .rounded))
@@ -109,13 +106,13 @@ struct QuizRushView: View {
                             }
                             .frame(maxWidth: .infinity)
                             .frame(height: 100)
-                            .background(vm.selectedCategory == category ? Color.purple.opacity(0.3) : Color(red: 0.08, green: 0.08, blue: 0.16))
+                            .background(vm.selectedCategory == category ? ArcadeTheme.accentMuted : ArcadeTheme.surface)
                             .cornerRadius(18)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 18)
-                                    .stroke(vm.selectedCategory == category ? Color.purple : Color.white.opacity(0.12), lineWidth: 2)
+                                    .stroke(vm.selectedCategory == category ? ArcadeTheme.accent : ArcadeTheme.border, lineWidth: 2)
                             )
-                            .shadow(color: vm.selectedCategory == category ? .purple.opacity(0.3) : .clear, radius: 8)
+                            .shadow(color: .clear, radius: 0)
                         }
                         .buttonStyle(PlainButtonStyle())
                     }
@@ -138,10 +135,10 @@ struct QuizRushView: View {
                     .padding(.vertical, 16)
                     .padding(.horizontal, 48)
                     .background(
-                        LinearGradient(colors: [.purple, .pink], startPoint: .leading, endPoint: .trailing)
+                        ArcadeTheme.brandGradient
                     )
                     .clipShape(Capsule())
-                    .shadow(color: .purple.opacity(0.4), radius: 12)
+                    .shadow(color: ArcadeTheme.accent.opacity(0.25), radius: 8)
             }
             .padding(.top, 8)
             
@@ -153,9 +150,9 @@ struct QuizRushView: View {
         VStack(spacing: 20) {
             ProgressView()
                 .scaleEffect(1.5)
-                .tint(.purple)
+                .tint(ArcadeTheme.accent)
             
-            Text("Loading Trivia Questions...")
+            Text("Loading \(vm.campaignLevel.title)...")
                 .font(.system(.headline, design: .rounded))
                 .foregroundStyle(.secondary)
         }
@@ -207,7 +204,7 @@ struct QuizRushView: View {
                         .foregroundStyle(.white)
                         .padding(.vertical, 14)
                         .padding(.horizontal, 20)
-                        .background(Color(red: 0.12, green: 0.12, blue: 0.22))
+                        .background(ArcadeTheme.surfaceElevated)
                         .clipShape(Capsule())
                 }
             }
@@ -216,73 +213,86 @@ struct QuizRushView: View {
     }
     
     private var gameplayView: some View {
-        VStack(spacing: 24) {
-            // Score & Streak Header Panel
-            HStack(spacing: 16) {
-                VStack(spacing: 4) {
-                    Text("QUESTION")
-                        .font(.system(.caption, design: .rounded))
-                        .fontWeight(.black)
-                        .foregroundStyle(.cyan)
-                    Text("\(vm.index + 1) / \(vm.questions.count)")
-                        .font(.system(.headline, design: .rounded))
-                        .fontWeight(.black)
+        VStack(spacing: 16) {
+            // Level + lives + timer
+            VStack(spacing: 10) {
+                HStack {
+                    Text(vm.campaignLevel.title)
+                        .font(.caption.bold())
                         .foregroundStyle(.white)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 12)
-                .background(Color(red: 0.08, green: 0.08, blue: 0.15))
-                .cornerRadius(18)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 18)
-                        .stroke(Color.cyan.opacity(0.3), lineWidth: 1.5)
-                )
-                
-                VStack(spacing: 4) {
-                    Text("SCORE")
-                        .font(.system(.caption, design: .rounded))
-                        .fontWeight(.black)
-                        .foregroundStyle(.purple)
-                    Text("\(vm.score)")
-                        .font(.system(.headline, design: .rounded))
-                        .fontWeight(.black)
-                        .foregroundStyle(.white)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 12)
-                .background(Color(red: 0.08, green: 0.08, blue: 0.15))
-                .cornerRadius(18)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 18)
-                        .stroke(Color.purple.opacity(0.3), lineWidth: 1.5)
-                )
-                
-                VStack(spacing: 4) {
-                    Text("STREAK")
-                        .font(.system(.caption, design: .rounded))
-                        .fontWeight(.black)
-                        .foregroundStyle(.orange)
-                    
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(Capsule().fill(levelAccent.opacity(0.35)))
+
+                    Spacer()
+
                     HStack(spacing: 4) {
-                        Image(systemName: "flame.fill")
-                            .foregroundStyle(vm.streak > 0 ? .orange : .gray.opacity(0.4))
-                        Text("\(vm.streak)")
-                            .font(.system(.headline, design: .rounded))
-                            .fontWeight(.black)
-                            .foregroundStyle(vm.streak > 0 ? .orange : .white)
+                        ForEach(0..<max(vm.lives, 0), id: \.self) { _ in
+                            Image(systemName: "heart.fill")
+                                .foregroundStyle(Color(red: 0.82, green: 0.42, blue: 0.45))
+                                .font(.caption)
+                        }
+                        if vm.lives == 0 {
+                            Text("No lives")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
                     }
                 }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 12)
-                .background(Color(red: 0.08, green: 0.08, blue: 0.15))
-                .cornerRadius(18)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 18)
-                        .stroke(Color.orange.opacity(0.3), lineWidth: 1.5)
-                )
+
+                // Countdown bar
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Label(String(format: "%.0fs", max(0, vm.timeRemaining)), systemImage: "timer")
+                            .font(.caption.bold())
+                            .foregroundStyle(vm.timeRemaining < 5 ? ArcadeTheme.danger : ArcadeTheme.accentSecondary)
+                        Spacer()
+                        Text("Q \(vm.index + 1)/\(vm.questions.count)")
+                            .font(.caption.bold())
+                            .foregroundStyle(.white.opacity(0.7))
+                    }
+
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            Capsule().fill(Color.white.opacity(0.12))
+                            Capsule()
+                                .fill(
+                                    LinearGradient(
+                                        colors: vm.timeRemaining < 5 ? [ArcadeTheme.danger, ArcadeTheme.warning] : [ArcadeTheme.accentSecondary, ArcadeTheme.accent],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
+                                .frame(width: geo.size.width * vm.timerProgress)
+                        }
+                    }
+                    .frame(height: 8)
+                }
+
+                if let bonus = vm.bonusBanner {
+                    Text(bonus)
+                        .font(.caption.bold())
+                        .foregroundStyle(.black)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(
+                            Capsule().fill(
+                                LinearGradient(colors: [.yellow, .orange], startPoint: .leading, endPoint: .trailing)
+                            )
+                        )
+                        .transition(.scale.combined(with: .opacity))
+                }
             }
             .padding(.horizontal)
             .padding(.top, 8)
+
+            // Score / streak strip
+            HStack(spacing: 12) {
+                statChip(title: "SCORE", value: "\(vm.score)", color: ArcadeTheme.accent)
+                statChip(title: "STREAK", value: "\(vm.streak)", color: ArcadeTheme.warning)
+                statChip(title: "CORRECT", value: "\(vm.totalCorrect)", color: ArcadeTheme.accentSecondary)
+            }
+            .padding(.horizontal)
             
             // Question Card Display (Holographic outline)
             if let question = vm.currentQuestion {
@@ -301,13 +311,13 @@ struct QuizRushView: View {
                 }
                 .frame(height: 180)
                 .frame(maxWidth: .infinity)
-                .background(Color(red: 0.05, green: 0.05, blue: 0.12).opacity(0.8))
+                .background(ArcadeTheme.surface.opacity(0.95))
                 .cornerRadius(24)
                 .overlay(
                     RoundedRectangle(cornerRadius: 24, style: .continuous)
-                        .stroke(LinearGradient(colors: [.cyan.opacity(0.6), .purple.opacity(0.6)], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 2)
+                        .stroke(LinearGradient(colors: [ArcadeTheme.accentSecondary.opacity(0.5), ArcadeTheme.accent.opacity(0.4)], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 2)
                 )
-                .shadow(color: .cyan.opacity(0.15), radius: 15)
+                .shadow(color: .black.opacity(0.2), radius: 8)
                 .modifier(ShakeEffect(animatableData: vm.shakeTrigger))
                 .padding(.horizontal)
                 
@@ -363,19 +373,130 @@ struct QuizRushView: View {
             Spacer()
         }
     }
+
+    private var levelAccent: Color {
+        switch vm.campaignLevel {
+        case .easy: return .green
+        case .medium: return .orange
+        case .hard: return .red
+        }
+    }
+
+    private func statChip(title: String, value: String, color: Color) -> some View {
+        VStack(spacing: 4) {
+            Text(title)
+                .font(.system(.caption2, design: .rounded))
+                .fontWeight(.black)
+                .foregroundStyle(color)
+            Text(value)
+                .font(.system(.headline, design: .rounded))
+                .fontWeight(.black)
+                .foregroundStyle(.white)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 10)
+        .background(ArcadeTheme.surface)
+        .cornerRadius(16)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(color.opacity(0.35), lineWidth: 1.5)
+        )
+    }
+
+    private var levelCompleteView: some View {
+        VStack(spacing: 24) {
+            Spacer()
+
+            VStack(spacing: 18) {
+                Text("LEVEL CLEARED!")
+                    .font(.system(.title2, design: .rounded))
+                    .fontWeight(.black)
+                    .foregroundStyle(
+                        LinearGradient(colors: [ArcadeTheme.success, ArcadeTheme.accentSecondary], startPoint: .leading, endPoint: .trailing)
+                    )
+
+                Text(vm.campaignLevel.title)
+                    .font(.headline)
+                    .foregroundStyle(.white.opacity(0.8))
+
+                if let bonus = vm.bonusBanner {
+                    Text(bonus)
+                        .font(.subheadline.bold())
+                        .foregroundStyle(.yellow)
+                }
+
+                HStack(spacing: 20) {
+                    VStack {
+                        Text("\(vm.score)")
+                            .font(.title.bold())
+                            .foregroundStyle(.white)
+                        Text("Score")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    VStack {
+                        Text("\(vm.lives)")
+                            .font(.title.bold())
+                            .foregroundStyle(ArcadeTheme.danger)
+                        Text("Lives")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    VStack {
+                        Text("\(vm.levelsCleared)/3")
+                            .font(.title.bold())
+                            .foregroundStyle(ArcadeTheme.accentSecondary)
+                        Text("Levels")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
+                if let next = vm.campaignLevel.next {
+                    Text("Next up: \(next.title)")
+                        .font(.subheadline)
+                        .foregroundStyle(.white.opacity(0.7))
+
+                    Button {
+                        Task { await vm.continueToNextLevel() }
+                    } label: {
+                        Text("Continue Campaign")
+                            .font(.headline.bold())
+                            .foregroundStyle(.white)
+                            .padding(.vertical, 14)
+                            .padding(.horizontal, 32)
+                            .background(
+                                ArcadeTheme.brandGradient,
+                                in: Capsule()
+                            )
+                    }
+                }
+            }
+            .padding(28)
+            .background(ArcadeTheme.surfaceElevated)
+            .cornerRadius(28)
+            .overlay(
+                RoundedRectangle(cornerRadius: 28)
+                    .stroke(Color.white.opacity(0.12), lineWidth: 1.5)
+            )
+            .padding(.horizontal, 24)
+
+            Spacer()
+        }
+    }
     
     private var gameOverView: some View {
         VStack(spacing: 24) {
             Spacer()
             
             VStack(spacing: 20) {
-                Text("ROUND OVER")
+                Text(vm.levelsCleared >= 3 ? "CAMPAIGN COMPLETE" : "RUN OVER")
                     .font(.system(.title2, design: .rounded))
                     .fontWeight(.black)
                     .foregroundStyle(
-                        LinearGradient(colors: [.purple, .pink], startPoint: .leading, endPoint: .trailing)
+                        ArcadeTheme.brandGradient
                     )
-                    .shadow(color: .purple.opacity(0.4), radius: 8)
+                    .shadow(color: ArcadeTheme.accent.opacity(0.2), radius: 6)
                 
                 VStack(spacing: 4) {
                     Text("Final Score")
@@ -386,6 +507,9 @@ struct QuizRushView: View {
                         .font(.system(.largeTitle, design: .rounded))
                         .fontWeight(.black)
                         .foregroundStyle(.white)
+                    Text("Levels cleared: \(vm.levelsCleared)/3 · Correct: \(vm.totalCorrect)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
                 
                 if vm.isNewHighScore {
@@ -422,10 +546,10 @@ struct QuizRushView: View {
                                 .padding(.vertical, 12)
                                 .padding(.horizontal, 28)
                                 .background(
-                                    LinearGradient(colors: [.blue, .purple], startPoint: .leading, endPoint: .trailing)
+                                    ArcadeTheme.brandGradient
                                 )
                                 .clipShape(Capsule())
-                                .shadow(color: .blue.opacity(0.4), radius: 8, x: 0, y: 4)
+                                .shadow(color: ArcadeTheme.accent.opacity(0.25), radius: 6, y: 3)
                         }
                         
                         ShareLink(item: "I just scored \(vm.score) on Quiz Rush — beat that!") {
@@ -434,7 +558,7 @@ struct QuizRushView: View {
                                 .bold()
                                 .foregroundStyle(.white)
                                 .padding(.all, 12)
-                                .background(Color(red: 0.12, green: 0.12, blue: 0.22))
+                                .background(ArcadeTheme.surfaceElevated)
                                 .clipShape(Circle())
                         }
                     }
@@ -445,20 +569,20 @@ struct QuizRushView: View {
                         Text("Change Category")
                             .font(.system(.subheadline, design: .rounded))
                             .fontWeight(.bold)
-                            .foregroundStyle(.purple)
+                            .foregroundStyle(ArcadeTheme.accentSecondary)
                             .padding(.vertical, 8)
                             .padding(.horizontal, 24)
                     }
                 }
             }
             .padding(.all, 32)
-            .background(Color(red: 0.05, green: 0.05, blue: 0.10).opacity(0.95))
+            .background(ArcadeTheme.surfaceElevated)
             .cornerRadius(28)
             .overlay(
                 RoundedRectangle(cornerRadius: 28, style: .continuous)
                     .stroke(Color.white.opacity(0.12), lineWidth: 1.5)
             )
-            .shadow(color: .purple.opacity(0.1), radius: 15)
+            .shadow(color: .black.opacity(0.25), radius: 10)
             .padding(.horizontal, 24)
             
             Spacer()
@@ -473,7 +597,7 @@ struct QuizRushView: View {
         if let wrong = vm.wrongHighlightIndex, wrong == answer {
             return .red
         }
-        return Color(red: 0.08, green: 0.08, blue: 0.16)
+        return ArcadeTheme.surface
     }
     
     private func choiceTextColor(for answer: String) -> Color {
@@ -525,18 +649,18 @@ struct HolographicSpaceNebulaBackground: View {
     
     var body: some View {
         ZStack {
-            Color(red: 0.02, green: 0.01, blue: 0.04)
+            ArcadeTheme.backgroundDeep
                 .ignoresSafeArea()
             
             ZStack {
                 Circle()
-                    .fill(Color.purple.opacity(0.22))
+                    .fill(ArcadeTheme.ambientC)
                     .frame(width: 320, height: 320)
                     .offset(x: animate ? -50 : 50, y: animate ? -80 : 80)
                     .blur(radius: 60)
                 
                 Circle()
-                    .fill(Color.indigo.opacity(0.20))
+                    .fill(ArcadeTheme.ambientB)
                     .frame(width: 280, height: 280)
                     .offset(x: animate ? 70 : -70, y: animate ? 70 : -70)
                     .blur(radius: 50)

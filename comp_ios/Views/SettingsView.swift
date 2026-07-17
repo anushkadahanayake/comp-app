@@ -34,7 +34,7 @@ struct SettingsView: View {
 
     var body: some View {
         ZStack {
-            Color(red: 0.03, green: 0.03, blue: 0.07)
+            ArcadeTheme.backgroundDeep
                 .ignoresSafeArea()
 
             List {
@@ -46,6 +46,7 @@ struct SettingsView: View {
                 dangerSection
             }
             .scrollContentBackground(.hidden)
+            .tint(ArcadeTheme.accent)
         }
         .navigationTitle("Settings")
         .confirmationDialog(
@@ -71,7 +72,7 @@ struct SettingsView: View {
 
     private var gameplaySection: some View {
         Section(
-            header: sectionHeader("GAMEPLAY", color: .cyan),
+            header: sectionHeader("GAMEPLAY", color: ArcadeTheme.accent),
             footer: Text("Round length adjusts Light It Up level-up thresholds.")
                 .foregroundStyle(.secondary)
         ) {
@@ -87,11 +88,11 @@ struct SettingsView: View {
     }
 
     private var soundHapticsSection: some View {
-        Section(header: sectionHeader("SOUND & HAPTICS", color: .mint)) {
+        Section(header: sectionHeader("SOUND & HAPTICS", color: ArcadeTheme.accentSecondary)) {
             Toggle(isOn: $soundEnabled) {
                 Label("Game Sounds", systemImage: "speaker.wave.2.fill")
             }
-            .tint(.cyan)
+            .tint(ArcadeTheme.accent)
             .onChange(of: soundEnabled) { _, enabled in
                 if enabled { AppFeedback.playTap() }
             }
@@ -99,7 +100,7 @@ struct SettingsView: View {
             Toggle(isOn: $hapticsEnabled) {
                 Label("Haptic Feedback", systemImage: "iphone.radiowaves.left.and.right")
             }
-            .tint(.cyan)
+            .tint(ArcadeTheme.accent)
             .onChange(of: hapticsEnabled) { _, enabled in
                 if enabled { AppFeedback.impact(.medium) }
             }
@@ -109,14 +110,14 @@ struct SettingsView: View {
             } label: {
                 Label("Test Sound & Haptics", systemImage: "waveform")
             }
-            .foregroundStyle(.cyan)
+            .foregroundStyle(ArcadeTheme.accent)
         }
         .listRowBackground(rowBackground)
     }
 
     private var notificationsSection: some View {
         Section(
-            header: sectionHeader("NOTIFICATIONS", color: .purple),
+            header: sectionHeader("NOTIFICATIONS", color: ArcadeTheme.accentSecondary),
             footer: Text(notificationsFooter)
                 .foregroundStyle(.secondary)
         ) {
@@ -125,13 +126,13 @@ struct SettingsView: View {
                 Spacer()
                 Text(notifications.statusLabel)
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(notifications.isAuthorized ? .green : .orange)
+                    .foregroundStyle(notifications.isAuthorized ? ArcadeTheme.success : ArcadeTheme.warning)
             }
 
             Toggle(isOn: $notificationsEnabled) {
                 Label("Daily Challenge Reminder", systemImage: "alarm.fill")
             }
-            .tint(.cyan)
+            .tint(ArcadeTheme.accent)
             .onChange(of: notificationsEnabled) { _, enabled in
                 if enabled {
                     notifications.requestPermission { granted in
@@ -157,14 +158,14 @@ struct SettingsView: View {
                 } label: {
                     Label("Open iOS Settings", systemImage: "gear")
                 }
-                .foregroundStyle(.orange)
+                .foregroundStyle(ArcadeTheme.warning)
             } else if notifications.authorizationStatus == .notDetermined {
                 Button {
                     notifications.requestPermission()
                 } label: {
                     Label("Request Notification Access", systemImage: "bell")
                 }
-                .foregroundStyle(.cyan)
+                .foregroundStyle(ArcadeTheme.accent)
             }
         }
         .listRowBackground(rowBackground)
@@ -172,7 +173,7 @@ struct SettingsView: View {
 
     private var locationSection: some View {
         Section(
-            header: sectionHeader("LOCATION", color: .orange),
+            header: sectionHeader("LOCATION", color: ArcadeTheme.accentSecondary),
             footer: Text("Location is used to drop map pins when you finish a game.")
                 .foregroundStyle(.secondary)
         ) {
@@ -181,7 +182,7 @@ struct SettingsView: View {
                 Spacer()
                 Text(locationService.statusLabel)
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(locationService.isAuthorized ? .green : .orange)
+                    .foregroundStyle(locationService.isAuthorized ? ArcadeTheme.success : ArcadeTheme.warning)
             }
 
             if let label = locationService.coordinateLabel {
@@ -201,7 +202,7 @@ struct SettingsView: View {
             Toggle(isOn: $saveLocationWithSessions) {
                 Label("Save Location With Scores", systemImage: "map.fill")
             }
-            .tint(.cyan)
+            .tint(ArcadeTheme.accent)
 
             if locationService.isDenied {
                 Button {
@@ -209,21 +210,21 @@ struct SettingsView: View {
                 } label: {
                     Label("Open iOS Settings", systemImage: "gear")
                 }
-                .foregroundStyle(.orange)
+                .foregroundStyle(ArcadeTheme.warning)
             } else {
                 Button {
                     locationService.refreshLocation()
                 } label: {
                     Label(locationService.authorizationStatus == .notDetermined ? "Request Location Access" : "Refresh Location", systemImage: "location.circle")
                 }
-                .foregroundStyle(.cyan)
+                .foregroundStyle(ArcadeTheme.accent)
             }
         }
         .listRowBackground(rowBackground)
     }
 
     private var aboutSection: some View {
-        Section(header: sectionHeader("ABOUT", color: .blue)) {
+        Section(header: sectionHeader("ABOUT", color: ArcadeTheme.textSecondary)) {
             HStack {
                 Text("App")
                 Spacer()
@@ -247,7 +248,7 @@ struct SettingsView: View {
     }
 
     private var dangerSection: some View {
-        Section(header: sectionHeader("DANGER ZONE", color: .red)) {
+        Section(header: sectionHeader("DANGER ZONE", color: ArcadeTheme.danger)) {
             Button(role: .destructive) {
                 showResetConfirmation = true
             } label: {
@@ -270,13 +271,13 @@ struct SettingsView: View {
     }
 
     private var rowBackground: Color {
-        Color(red: 0.08, green: 0.08, blue: 0.15)
+        ArcadeTheme.surface
     }
 
     private func sectionHeader(_ title: String, color: Color) -> some View {
         Text(title)
             .font(.system(.caption, design: .rounded))
-            .fontWeight(.black)
+            .fontWeight(.semibold)
             .foregroundStyle(color)
     }
 }

@@ -1,5 +1,4 @@
 import Foundation
-import UIKit
 
 /// Value type used by timers / onChange — must stay nonisolated under default MainActor isolation.
 nonisolated enum GameState: Equatable, Sendable {
@@ -66,7 +65,7 @@ nonisolated struct TriviaResponse: Codable, Sendable {
 }
 
 nonisolated struct Question: Codable, Identifiable, Equatable, Sendable {
-    var id: UUID = UUID()
+    var id: UUID
     let category: String
     let type: String
     let difficulty: String
@@ -75,24 +74,35 @@ nonisolated struct Question: Codable, Identifiable, Equatable, Sendable {
     let incorrect_answers: [String]
     
     // Decoded question helper
-    var decodedQuestion: String {
+    nonisolated var decodedQuestion: String {
         question.decodingHTMLEntities()
     }
     
     // Decoded correct answer helper
-    var decodedCorrectAnswer: String {
+    nonisolated var decodedCorrectAnswer: String {
         correct_answer.decodingHTMLEntities()
     }
     
     // Decoded incorrect answers helper
-    var decodedIncorrectAnswers: [String] {
+    nonisolated var decodedIncorrectAnswers: [String] {
         incorrect_answers.map { $0.decodingHTMLEntities() }
     }
 
     enum CodingKeys: String, CodingKey {
         case category, type, difficulty, question
-        case correct_answer = "correct_answer"
-        case incorrect_answers = "incorrect_answers"
+        case correct_answer
+        case incorrect_answers
+    }
+
+    nonisolated init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = UUID()
+        category = try container.decode(String.self, forKey: .category)
+        type = try container.decode(String.self, forKey: .type)
+        difficulty = try container.decode(String.self, forKey: .difficulty)
+        question = try container.decode(String.self, forKey: .question)
+        correct_answer = try container.decode(String.self, forKey: .correct_answer)
+        incorrect_answers = try container.decode([String].self, forKey: .incorrect_answers)
     }
     
     nonisolated static func == (lhs: Question, rhs: Question) -> Bool {
@@ -102,15 +112,50 @@ nonisolated struct Question: Codable, Identifiable, Equatable, Sendable {
 
 // MARK: - HTML Decoding Extension
 extension String {
-    func decodingHTMLEntities() -> String {
-        guard let data = self.data(using: .utf8) else { return self }
-        let options: [NSAttributedString.DocumentReadingOptionKey: Any] = [
-            .documentType: NSAttributedString.DocumentType.html,
-            .characterEncoding: String.Encoding.utf8.rawValue
+    /// Trivia DB entity decode — nonisolated (no UIKit / MainActor dependency).
+    nonisolated func decodingHTMLEntities() -> String {
+        var result = self
+        let entities: [(String, String)] = [
+            ("&quot;", "\""),
+            ("&apos;", "'"),
+            ("&#039;", "'"),
+            ("&#39;", "'"),
+            ("&amp;", "&"),
+            ("&lt;", "<"),
+            ("&gt;", ">"),
+            ("&nbsp;", " "),
+            ("&ldquo;", "\u{201C}"),
+            ("&rdquo;", "\u{201D}"),
+            ("&lsquo;", "\u{2018}"),
+            ("&rsquo;", "\u{2019}"),
+            ("&hellip;", "…"),
+            ("&mdash;", "—"),
+            ("&ndash;", "–")
         ]
-        if let attributedString = try? NSAttributedString(data: data, options: options, documentAttributes: nil) {
-            return attributedString.string
+        for (entity, replacement) in entities {
+            result = result.replacingOccurrences(of: entity, with: replacement)
         }
-        return self
+
+        // Numeric entities like &#039; or &#x27;
+        if let regex = try? NSRegularExpression(pattern: "&#(x?[0-9A-Fa-f]+);") {
+            let nsRange = NSRange(result.startIndex..<result.endIndex, in: result)
+            let matches = regex.matches(in: result, range: nsRange).reversed()
+            for match in matches {
+                guard let fullRange = Range(match.range, in: result),
+                      let valueRange = Range(match.range(at: 1), in: result) else { continue }
+                let raw = String(result[valueRange])
+                let scalarValue: UInt32?
+                if raw.lowercased().hasPrefix("x") {
+                    scalarValue = UInt32(raw.dropFirst(), radix: 16)
+                } else {
+                    scalarValue = UInt32(raw)
+                }
+                if let scalarValue, let scalar = UnicodeScalar(scalarValue) {
+                    result.replaceSubrange(fullRange, with: String(Character(scalar)))
+                }
+            }
+        }
+
+        return result
     }
 }
