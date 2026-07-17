@@ -1,9 +1,8 @@
 import Foundation
 import SwiftUI
 import Combine
-import CoreLocation
 
-enum QuizViewState: Equatable {
+nonisolated enum QuizViewState: Equatable, Sendable {
     case idle
     case loading
     case loaded
@@ -175,9 +174,13 @@ final class QuizViewModel: ObservableObject {
             isNewHighScore = false
         }
         hapticTrigger = .warning
-        
-        let lat = LocationService.shared.lastLocation?.coordinate.latitude
-        let lon = LocationService.shared.lastLocation?.coordinate.longitude
+
+        let saveLocation = UserDefaults.standard.object(forKey: "SaveLocationWithSessions") as? Bool ?? true
+        if saveLocation {
+            LocationService.shared.refreshLocation()
+        }
+        let lat = saveLocation ? LocationService.shared.currentLatitude : nil
+        let lon = saveLocation ? LocationService.shared.currentLongitude : nil
         SessionHistoryManager.shared.saveSession(
             mode: "Quiz Rush",
             score: score,

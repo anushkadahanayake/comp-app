@@ -504,9 +504,7 @@ struct QuizRushView: View {
     }
     
     private func triggerNotificationFeedback(type: UINotificationFeedbackGenerator.FeedbackType) {
-        let generator = UINotificationFeedbackGenerator()
-        generator.prepare()
-        generator.notificationOccurred(type)
+        AppFeedback.notify(type)
     }
 }
 

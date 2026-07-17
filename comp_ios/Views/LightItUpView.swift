@@ -443,15 +443,12 @@ struct LightItUpView: View {
     }
     
     @MainActor private func triggerHapticFeedback(style: UIImpactFeedbackGenerator.FeedbackStyle) {
-        let generator = UIImpactFeedbackGenerator(style: style)
-        generator.prepare()
-        generator.impactOccurred()
+        AppFeedback.impact(style)
+        AppFeedback.playTap()
     }
     
     @MainActor private func triggerNotificationFeedback(type: UINotificationFeedbackGenerator.FeedbackType) {
-        let generator = UINotificationFeedbackGenerator()
-        generator.prepare()
-        generator.notificationOccurred(type)
+        AppFeedback.notify(type)
     }
 }
 

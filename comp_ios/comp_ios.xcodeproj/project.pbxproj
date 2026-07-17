@@ -26,6 +26,9 @@
 		863B627A2FD967E00088C895 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B62792FD967E00088C895 /* NotificationService.swift */; };
 		863B627C2FD967E00088C895 /* StatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B627B2FD967E00088C895 /* StatsView.swift */; };
 		863B627E2FD967E00088C895 /* GameMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B627D2FD967E00088C895 /* GameMapView.swift */; };
+		863B62822FD969000088C895 /* ArcadeTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B62812FD969000088C895 /* ArcadeTabBar.swift */; };
+		863B62842FD969100088C895 /* AppFeedback.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B62832FD969100088C895 /* AppFeedback.swift */; };
+		863B62862FD96A000088C895 /* LocationCoordinateBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = 863B62852FD96A000088C895 /* LocationCoordinateBridge.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -48,6 +51,11 @@
 		863B62792FD967E00088C895 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 		863B627B2FD967E00088C895 /* StatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsView.swift; sourceTree = "<group>"; };
 		863B627D2FD967E00088C895 /* GameMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameMapView.swift; sourceTree = "<group>"; };
+		863B62812FD969000088C895 /* ArcadeTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArcadeTabBar.swift; sourceTree = "<group>"; };
+		863B62832FD969100088C895 /* AppFeedback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppFeedback.swift; sourceTree = "<group>"; };
+		863B62852FD96A000088C895 /* LocationCoordinateBridge.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LocationCoordinateBridge.m; sourceTree = "<group>"; };
+		863B62872FD96A000088C895 /* LocationCoordinateBridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LocationCoordinateBridge.h; sourceTree = "<group>"; };
+		863B62882FD96A000088C895 /* comp_ios-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "comp_ios-Bridging-Header.h"; sourceTree = "<group>"; };
 		868946602FD95D1B005E1193 /* comp_ios.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = comp_ios.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -85,6 +93,7 @@
 			isa = PBXGroup;
 			children = (
 				863B62282FD964320088C895 /* ContentView.swift */,
+				863B62812FD969000088C895 /* ArcadeTabBar.swift */,
 				863B62502FD964320088C895 /* HomeView.swift */,
 				863B62562FD964320088C895 /* SettingsView.swift */,
 				863B62522FD964320088C895 /* TapFrenzyView.swift */,
@@ -102,7 +111,10 @@
 			children = (
 				863B62712FD967E00088C895 /* TriviaService.swift */,
 				863B62772FD967E00088C895 /* LocationService.swift */,
+				863B62872FD96A000088C895 /* LocationCoordinateBridge.h */,
+				863B62852FD96A000088C895 /* LocationCoordinateBridge.m */,
 				863B62792FD967E00088C895 /* NotificationService.swift */,
+				863B62832FD969100088C895 /* AppFeedback.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -116,6 +128,7 @@
 				868946612FD95D1B005E1193 /* Products */,
 				863B62312FD968500088C895 /* Views */,
 				863B62272FD964320088C895 /* comp_iosApp.swift */,
+				863B62882FD96A000088C895 /* comp_ios-Bridging-Header.h */,
 				863B62262FD964320088C895 /* Assets.xcassets */,
 			);
 			sourceTree = "<group>";
@@ -218,6 +231,9 @@
 				863B62552FD964320088C895 /* LightItUpView.swift in Sources */,
 				863B62362FD96F210088C895 /* GameState.swift in Sources */,
 				863B62802FD968000088C895 /* GameCatalog.swift in Sources */,
+				863B62822FD969000088C895 /* ArcadeTabBar.swift in Sources */,
+				863B62842FD969100088C895 /* AppFeedback.swift in Sources */,
+				863B62862FD96A000088C895 /* LocationCoordinateBridge.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -369,7 +385,7 @@
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "comp_ios-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -401,7 +417,7 @@
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "comp_ios-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};

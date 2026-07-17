@@ -1,13 +1,14 @@
 import Foundation
 import UIKit
 
-enum GameState {
+/// Value type used by timers / onChange — must stay nonisolated under default MainActor isolation.
+nonisolated enum GameState: Equatable, Sendable {
     case idle
     case running
     case finished
 }
 
-enum GameMode: String, CaseIterable, Identifiable {
+nonisolated enum GameMode: String, CaseIterable, Identifiable, Sendable {
     case tapFrenzy = "Tap Frenzy"
     case lightItUp = "Light It Up"
     case quizRush = "Quiz Rush"
@@ -15,12 +16,12 @@ enum GameMode: String, CaseIterable, Identifiable {
     var id: String { self.rawValue }
 }
 
-struct Card: Identifiable, Equatable {
+nonisolated struct Card: Identifiable, Equatable, Sendable {
     let id: Int
     var isLit: Bool = false
 }
 
-enum Level: CaseIterable {
+nonisolated enum Level: CaseIterable, Sendable {
     case l1, l2, l3, l4
     
     var name: String {
@@ -59,12 +60,12 @@ enum Level: CaseIterable {
 }
 
 // MARK: - Trivia Models
-struct TriviaResponse: Codable {
+nonisolated struct TriviaResponse: Codable, Sendable {
     let response_code: Int
     let results: [Question]
 }
 
-struct Question: Codable, Identifiable, Equatable {
+nonisolated struct Question: Codable, Identifiable, Equatable, Sendable {
     var id: UUID = UUID()
     let category: String
     let type: String
@@ -94,7 +95,7 @@ struct Question: Codable, Identifiable, Equatable {
         case incorrect_answers = "incorrect_answers"
     }
     
-    static func == (lhs: Question, rhs: Question) -> Bool {
+    nonisolated static func == (lhs: Question, rhs: Question) -> Bool {
         return lhs.id == rhs.id
     }
 }
