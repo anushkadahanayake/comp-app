@@ -2,7 +2,6 @@ import SwiftUI
 import Combine
 
 struct HomeView: View {
-    @StateObject private var vm = GameViewModel()
     @AppStorage("HighScore_TapFrenzy") private var highScoreTapFrenzy: Int = 0
     @AppStorage("HighScore_LightItUp") private var highScoreLightItUp: Int = 0
     @AppStorage("HighScore_QuizRush") private var highScoreQuizRush: Int = 0
@@ -16,6 +15,8 @@ struct HomeView: View {
     @State private var resumeAutoScrollWork: DispatchWorkItem?
     @State private var animateHeader = false
     @State private var animateCarousel = false
+    /// Frozen game mode used for navigation — never changes while a game is open.
+    @State private var activeGameMode: GameMode?
 
     private let autoScrollTimer = Timer.publish(every: 4, on: .main, in: .common).autoconnect()
 
@@ -30,6 +31,9 @@ struct HomeView: View {
 
     /// Last TabView page is a clone of the first game — used for seamless forward wrap.
     private var loopClonePage: Int { games.count }
+
+    /// True while a game screen is pushed — blocks carousel auto-advance.
+    private var isPlayingGame: Bool { activeGameMode != nil }
 
     private func highScore(for game: ArcadeGame) -> Int {
         switch game.mode {
@@ -60,9 +64,16 @@ struct HomeView: View {
                 .padding(.bottom, 32)
             }
         }
+        .navigationDestination(item: $activeGameMode) { mode in
+            // Destination is locked to the mode chosen at tap time — each game stays separate.
+            gameDestination(for: mode)
+        }
         .onAppear {
-            vm.resetGame()
             migrateLegacyHighScore()
+            // Resume browsing carousel only when back on Home (not while a game is open).
+            if !isPlayingGame {
+                isAutoScrolling = true
+            }
             withAnimation(.spring(response: 0.7, dampingFraction: 0.7)) {
                 animateHeader = true
             }
@@ -70,10 +81,38 @@ struct HomeView: View {
                 animateCarousel = true
             }
         }
+        .onDisappear {
+            // Keep Home carousel frozen under a pushed game so selection can't swap mid-play.
+            stopAutoScroll()
+        }
         .onReceive(autoScrollTimer) { _ in
-            guard isAutoScrolling, games.count > 1 else { return }
+            guard isAutoScrolling, !isPlayingGame, games.count > 1 else { return }
             advanceCarouselCircular()
         }
+    }
+
+    @ViewBuilder
+    private func gameDestination(for mode: GameMode) -> some View {
+        switch mode {
+        case .tapFrenzy:
+            TapFrenzyView()
+        case .lightItUp:
+            LightItUpView()
+        case .quizRush:
+            QuizRushView()
+        }
+    }
+
+    /// Opens exactly one game and freezes the carousel until the user returns.
+    private func openGame(_ mode: GameMode) {
+        stopAutoScroll()
+        activeGameMode = mode
+    }
+
+    private func stopAutoScroll() {
+        isAutoScrolling = false
+        resumeAutoScrollWork?.cancel()
+        resumeAutoScrollWork = nil
     }
 
     /// Always moves forward: 0 → 1 → 2 → clone(0), then snaps to 0 without reverse scroll.
@@ -124,9 +163,11 @@ struct HomeView: View {
     }
 
     private func pauseAutoScrollTemporarily() {
+        guard !isPlayingGame else { return }
         isAutoScrolling = false
         resumeAutoScrollWork?.cancel()
         let work = DispatchWorkItem {
+            // Timer handler also checks isPlayingGame, so a late resume is safe.
             isAutoScrolling = true
         }
         resumeAutoScrollWork = work
@@ -182,7 +223,7 @@ struct HomeView: View {
                 Text("Game Library")
                     .font(.title3.bold())
                     .foregroundStyle(.white)
-                Text("Swipe, tap a chip, or let the carousel auto-scroll")
+                Text("Tap a game image to play • 3 separate games")
                     .font(.caption)
                     .foregroundStyle(.white.opacity(0.65))
             }
@@ -213,18 +254,26 @@ struct HomeView: View {
         VStack(spacing: 14) {
             TabView(selection: $carouselPage) {
                 ForEach(Array(games.enumerated()), id: \.element.id) { index, game in
-                    GameHeroCard(game: game, isSelected: selectedIndex == index)
-                        .padding(.horizontal, 8)
-                        .tag(index)
-                        .contentShape(Rectangle())
+                    Button {
+                        openGame(game.mode)
+                    } label: {
+                        GameHeroCard(game: game, isSelected: selectedIndex == index)
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.horizontal, 8)
+                    .tag(index)
                 }
 
                 // Extra copy of the first game so wrap always animates forward (circular).
                 if let first = games.first {
-                    GameHeroCard(game: first, isSelected: selectedIndex == 0)
-                        .padding(.horizontal, 8)
-                        .tag(loopClonePage)
-                        .contentShape(Rectangle())
+                    Button {
+                        openGame(first.mode)
+                    } label: {
+                        GameHeroCard(game: first, isSelected: selectedIndex == 0)
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.horizontal, 8)
+                    .tag(loopClonePage)
                 }
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
@@ -331,7 +380,7 @@ struct HomeView: View {
 
                 Spacer()
 
-                Text("Select a game above, then tap Play")
+                Text("Tap image or Play — opens only that game")
                     .font(.caption)
                     .foregroundStyle(.white.opacity(0.55))
             }
@@ -345,8 +394,8 @@ struct HomeView: View {
     }
 
     private var playButtonSection: some View {
-        NavigationLink {
-            selectedGame.destination
+        Button {
+            openGame(selectedGame.mode)
         } label: {
             HStack(spacing: 10) {
                 Image(systemName: "play.fill")
@@ -408,14 +457,12 @@ struct GameHeroCard: View {
 
                     Spacer()
 
-                    if isSelected {
-                        Text("SELECTED")
-                            .font(.caption2.bold())
-                            .foregroundStyle(.black)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 5)
-                            .background(Color.cyan, in: Capsule())
-                    }
+                    Text(isSelected ? "TAP TO PLAY" : "TAP")
+                        .font(.caption2.bold())
+                        .foregroundStyle(.black)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 5)
+                        .background(isSelected ? Color.cyan : Color.white.opacity(0.85), in: Capsule())
                 }
 
                 Text(game.title)

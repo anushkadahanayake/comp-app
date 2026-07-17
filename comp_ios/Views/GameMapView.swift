@@ -60,7 +60,7 @@ struct GameMapView: View {
                     UserAnnotation()
                 }
             }
-            .mapStyle(.standard(pointsOfInterest: .excludingAll, elevation: .realistic))
+            .mapStyle(.standard(elevation: .realistic, pointsOfInterest: .excludingAll))
             .mapControls {
                 MapUserLocationButton()
                 MapCompass()

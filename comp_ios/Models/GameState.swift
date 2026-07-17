@@ -8,7 +8,7 @@ nonisolated enum GameState: Equatable, Sendable {
     case finished
 }
 
-nonisolated enum GameMode: String, CaseIterable, Identifiable, Sendable {
+nonisolated enum GameMode: String, CaseIterable, Identifiable, Hashable, Sendable {
     case tapFrenzy = "Tap Frenzy"
     case lightItUp = "Light It Up"
     case quizRush = "Quiz Rush"
