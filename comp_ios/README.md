@@ -10,6 +10,7 @@ Educational iOS arcade hub with three games, local player accounts, personal sta
 |----------|-------------|
 | [System Architecture & Features](docs/SYSTEM_ARCHITECTURE_AND_FEATURES.md) | Full app structure, features, data flow, file map |
 | [Deep Coverage Score](docs/DEEP_COVERAGE_SCORE.md) | Score by skill area — what you covered and gaps |
+| [Top Marks / AI Evaluation Guide](docs/TOP_MARKS_AI_EVALUATION_GUIDE.md) | What AI markers look for + how to hit top marks |
 | [Tap Frenzy](docs/games/tap-frenzy.md) | 10s tap challenge rules & scoring |
 | [Light It Up](docs/games/light-it-up.md) | Lit-card reflex game & levels |
 | [Quiz Rush](docs/games/quiz-rush.md) | Trivia campaign & API behavior |

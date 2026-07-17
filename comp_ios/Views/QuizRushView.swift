@@ -12,6 +12,7 @@ struct QuizRushView: View {
     @Environment(\.dismiss) private var dismiss
     
     @State private var scaleCombo = false
+    @State private var showLeaderboard = false
     
     var body: some View {
         ZStack {
@@ -41,12 +42,24 @@ struct QuizRushView: View {
         .navigationTitle("Quiz Rush")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    showLeaderboard = true
+                } label: {
+                    Image(systemName: "trophy.fill")
+                }
+                .foregroundStyle(ArcadeTheme.accent)
+                .accessibilityLabel("Top scores")
+            }
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button("Close") {
                     dismiss()
                 }
                 .foregroundStyle(ArcadeTheme.accentSecondary)
             }
+        }
+        .sheet(isPresented: $showLeaderboard) {
+            GameModeLeaderboardSheet(mode: .quizRush)
         }
         .onChange(of: vm.streak) { _, newStreak in
             if newStreak > 0 {
@@ -147,8 +160,11 @@ struct QuizRushView: View {
                     .shadow(color: ArcadeTheme.accent.opacity(0.25), radius: 8)
             }
             .padding(.top, 8)
+
+            GameModeLeaderboardCard(mode: .quizRush)
+                .padding(.horizontal, 20)
             
-            Spacer()
+            Spacer(minLength: 12)
         }
     }
     
@@ -579,6 +595,8 @@ struct QuizRushView: View {
                             .padding(.vertical, 8)
                             .padding(.horizontal, 24)
                     }
+
+                    GameModeLeaderboardCard(mode: .quizRush)
                 }
             }
             .padding(.all, 32)

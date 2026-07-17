@@ -12,6 +12,7 @@ struct LightItUpView: View {
     @Environment(\.dismiss) private var dismiss
     
     @State private var flashRedBorder = false
+    @State private var showLeaderboard = false
     
     // Grid columns layout based on the level
     private var columns: [GridItem] {
@@ -356,6 +357,11 @@ struct LightItUpView: View {
                 .frame(height: 320)
                 .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
                 .padding(.horizontal)
+
+                if vm.state == .idle || vm.state == .finished {
+                    GameModeLeaderboardCard(mode: .lightItUp)
+                        .padding(.horizontal)
+                }
                 
                 Spacer()
             }
@@ -364,12 +370,24 @@ struct LightItUpView: View {
         .navigationTitle("Light It Up")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    showLeaderboard = true
+                } label: {
+                    Image(systemName: "trophy.fill")
+                }
+                .foregroundStyle(.orange)
+                .accessibilityLabel("Top scores")
+            }
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button("Close") {
                     dismiss()
                 }
                 .foregroundStyle(.orange)
             }
+        }
+        .sheet(isPresented: $showLeaderboard) {
+            GameModeLeaderboardSheet(mode: .lightItUp)
         }
         .onAppear {
             vm.currentMode = GameMode.lightItUp

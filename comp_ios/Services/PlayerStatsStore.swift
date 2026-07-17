@@ -61,6 +61,7 @@ final class PlayerStatsStore: ObservableObject {
         revision += 1
     }
 
+    /// Overall ranking by total XP across all games.
     func leaderboard(limit: Int = 20) -> [LeaderboardEntry] {
         let players = AuthService.shared.knownPlayers
         let sessions = SessionHistoryManager.shared.sessions
@@ -83,12 +84,47 @@ final class PlayerStatsStore: ObservableObject {
 
         return ranked.prefix(limit).enumerated().map { index, row in
             LeaderboardEntry(
+                id: "overall-\(row.0.id)",
                 playerId: row.0.id,
                 displayName: row.0.displayName,
                 avatarSymbol: row.0.avatarSymbol,
                 totalXP: row.1,
                 bestScore: row.2,
                 gamesPlayed: row.3,
+                rank: index + 1
+            )
+        }
+    }
+
+    /// Per-game ranking by that mode’s best score (high score + session history).
+    func leaderboard(for mode: GameMode, limit: Int = 10) -> [LeaderboardEntry] {
+        let players = AuthService.shared.knownPlayers
+        let sessions = SessionHistoryManager.shared.sessions
+        let modeName = mode.rawValue
+
+        let ranked: [(PlayerProfile, Int, Int)] = players.compactMap { player in
+            let modeSessions = sessions.filter { $0.playerId == player.id && $0.mode == modeName }
+            let sessionBest = modeSessions.map(\.score).max() ?? 0
+            let storedBest = highScore(for: mode, playerId: player.id)
+            let best = max(sessionBest, storedBest)
+            let games = modeSessions.count
+            guard best > 0 || games > 0 else { return nil }
+            return (player, best, games)
+        }
+        .sorted { lhs, rhs in
+            if lhs.1 != rhs.1 { return lhs.1 > rhs.1 }
+            return lhs.2 > rhs.2
+        }
+
+        return ranked.prefix(limit).enumerated().map { index, row in
+            LeaderboardEntry(
+                id: "\(mode.rawValue)-\(row.0.id)",
+                playerId: row.0.id,
+                displayName: row.0.displayName,
+                avatarSymbol: row.0.avatarSymbol,
+                totalXP: row.1,
+                bestScore: row.1,
+                gamesPlayed: row.2,
                 rank: index + 1
             )
         }

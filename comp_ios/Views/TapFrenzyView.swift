@@ -23,6 +23,7 @@ struct TapFrenzyView: View {
     @State private var floatingScores: [FloatingScore] = []
     @State private var pulseOuterRing = false
     @State private var tapScaleEffect: CGFloat = 1.0
+    @State private var showLeaderboard = false
     
     var body: some View {
         GeometryReader { proxy in
@@ -370,6 +371,11 @@ struct TapFrenzyView: View {
                         .transition(.opacity)
                     }
 
+                    if vm.state == .idle || vm.state == .finished {
+                        GameModeLeaderboardCard(mode: .tapFrenzy)
+                            .padding(.horizontal)
+                    }
+
                     Spacer()
                 }
                 .padding(.vertical)
@@ -378,12 +384,24 @@ struct TapFrenzyView: View {
         .navigationTitle("Tap Frenzy")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    showLeaderboard = true
+                } label: {
+                    Image(systemName: "trophy.fill")
+                }
+                .foregroundStyle(.cyan)
+                .accessibilityLabel("Top scores")
+            }
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button("Close") {
                     dismiss()
                 }
                 .foregroundStyle(.cyan)
             }
+        }
+        .sheet(isPresented: $showLeaderboard) {
+            GameModeLeaderboardSheet(mode: .tapFrenzy)
         }
         .onAppear {
             vm.currentMode = GameMode.tapFrenzy

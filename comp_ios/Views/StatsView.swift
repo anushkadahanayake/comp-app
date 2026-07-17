@@ -38,9 +38,19 @@ struct StatsView: View {
         return totalPoints / gamesPlayed
     }
 
-    private var favoriteMode: String {
+    /// Game you played most often (by session count).
+    private var mostPlayed: (mode: String, count: Int)? {
         let counts = Dictionary(grouping: mySessions, by: \.mode).mapValues(\.count)
-        return counts.max(by: { $0.value < $1.value })?.key ?? "—"
+        guard let top = counts.max(by: { $0.value < $1.value }) else { return nil }
+        return (top.key, top.value)
+    }
+
+    /// All local accounts ranked by XP (separate from personal stats below).
+    private var leaderboard: [LeaderboardEntry] {
+        _ = statsStore.revision
+        _ = historyManager.sessions.count
+        _ = auth.knownPlayers.count
+        return statsStore.leaderboard()
     }
 
     private var rank: (title: String, icon: String, nextAt: Int, progress: Double) {
@@ -70,6 +80,8 @@ struct StatsView: View {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 20) {
                     profileCard
+                    leaderboardCard
+                    perGameLeaderboards
                     summaryGrid
                     personalBestsCard
                     chartsSection
@@ -80,8 +92,156 @@ struct StatsView: View {
                 .padding(.bottom, 28)
             }
         }
-        .navigationTitle("My Stats")
+        .navigationTitle("Stats")
         .navigationBarTitleDisplayMode(.large)
+    }
+
+    // MARK: - Top Players
+
+    private var leaderboardCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            sectionHeader("Top Players (Overall)", icon: "trophy.fill")
+
+            Text("All accounts ranked by total XP. Per-game boards are below.")
+                .font(.caption)
+                .foregroundStyle(ArcadeTheme.textTertiary)
+
+            if leaderboard.isEmpty {
+                Text("Play games on a few accounts to fill the board.")
+                    .font(.subheadline)
+                    .foregroundStyle(ArcadeTheme.textSecondary)
+                    .padding(.vertical, 8)
+            } else {
+                VStack(spacing: 0) {
+                    ForEach(Array(leaderboard.prefix(8).enumerated()), id: \.element.id) { index, entry in
+                        if index > 0 {
+                            Divider().overlay(ArcadeTheme.border)
+                        }
+                        leaderboardRow(entry, valueLabel: "XP", accent: ArcadeTheme.accent)
+                    }
+                }
+            }
+        }
+        .padding(16)
+        .background(ArcadeTheme.surface, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .strokeBorder(ArcadeTheme.borderStrong, lineWidth: 1)
+        )
+    }
+
+    private var perGameLeaderboards: some View {
+        VStack(spacing: 12) {
+            gameLeaderboardCard(
+                title: "Tap Frenzy Top",
+                icon: "bolt.fill",
+                accent: ArcadeTheme.tapFrenzy,
+                entries: statsStore.leaderboard(for: .tapFrenzy),
+                scoreLabel: "Best"
+            )
+            gameLeaderboardCard(
+                title: "Light It Up Top",
+                icon: "lightbulb.fill",
+                accent: ArcadeTheme.lightItUp,
+                entries: statsStore.leaderboard(for: .lightItUp),
+                scoreLabel: "Best"
+            )
+            gameLeaderboardCard(
+                title: "Quiz Rush Top",
+                icon: "questionmark.circle.fill",
+                accent: ArcadeTheme.quizRush,
+                entries: statsStore.leaderboard(for: .quizRush),
+                scoreLabel: "Best"
+            )
+        }
+    }
+
+    private func gameLeaderboardCard(
+        title: String,
+        icon: String,
+        accent: Color,
+        entries: [LeaderboardEntry],
+        scoreLabel: String
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 8) {
+                Image(systemName: icon)
+                    .foregroundStyle(accent)
+                Text(title)
+                    .font(.headline.weight(.bold))
+                    .foregroundStyle(ArcadeTheme.textPrimary)
+            }
+
+            if entries.isEmpty {
+                Text("No scores for this game yet.")
+                    .font(.subheadline)
+                    .foregroundStyle(ArcadeTheme.textSecondary)
+                    .padding(.vertical, 4)
+            } else {
+                VStack(spacing: 0) {
+                    ForEach(Array(entries.prefix(5).enumerated()), id: \.element.id) { index, entry in
+                        if index > 0 {
+                            Divider().overlay(ArcadeTheme.border)
+                        }
+                        leaderboardRow(entry, valueLabel: scoreLabel, accent: accent)
+                    }
+                }
+            }
+        }
+        .padding(16)
+        .background(ArcadeTheme.surface, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .strokeBorder(accent.opacity(0.35), lineWidth: 1)
+        )
+    }
+
+    private func leaderboardRow(
+        _ entry: LeaderboardEntry,
+        valueLabel: String = "XP",
+        accent: Color = ArcadeTheme.accent
+    ) -> some View {
+        let isMe = entry.playerId == auth.currentPlayer?.id
+        return HStack(spacing: 12) {
+            Text("#\(entry.rank)")
+                .font(.caption.bold())
+                .foregroundStyle(entry.rank <= 3 ? accent : ArcadeTheme.textTertiary)
+                .frame(width: 28, alignment: .leading)
+
+            Image(systemName: entry.avatarSymbol)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(width: 32, height: 32)
+                .background(accent.opacity(isMe ? 0.55 : 0.28), in: Circle())
+
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 6) {
+                    Text(entry.displayName)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(ArcadeTheme.textPrimary)
+                    if isMe {
+                        Text("YOU")
+                            .font(.caption2.bold())
+                            .foregroundStyle(accent)
+                    }
+                }
+                Text("\(entry.gamesPlayed) games")
+                    .font(.caption2)
+                    .foregroundStyle(ArcadeTheme.textTertiary)
+            }
+
+            Spacer()
+
+            VStack(alignment: .trailing, spacing: 2) {
+                Text("\(valueLabel == "XP" ? entry.totalXP : entry.bestScore)")
+                    .font(.subheadline.bold())
+                    .foregroundStyle(ArcadeTheme.textPrimary)
+                Text(valueLabel)
+                    .font(.caption2)
+                    .foregroundStyle(ArcadeTheme.textTertiary)
+            }
+        }
+        .padding(.vertical, 10)
     }
 
     // MARK: - Profile
@@ -147,7 +307,12 @@ struct StatsView: View {
             summaryTile(title: "Games", value: "\(gamesPlayed)", icon: "gamecontroller.fill", color: ArcadeTheme.accent)
             summaryTile(title: "Total Points", value: "\(totalPoints)", icon: "star.fill", color: ArcadeTheme.accentSoft)
             summaryTile(title: "Avg Score", value: "\(averageScore)", icon: "chart.line.uptrend.xyaxis", color: ArcadeTheme.accentSecondary)
-            summaryTile(title: "Favorite", value: shortModeName(favoriteMode), icon: "heart.fill", color: ArcadeTheme.success)
+            summaryTile(
+                title: mostPlayed.map { "Most Played · \($0.count)×" } ?? "Most Played",
+                value: mostPlayed?.mode ?? "—",
+                icon: "heart.fill",
+                color: ArcadeTheme.success
+            )
         }
     }
 
@@ -360,15 +525,6 @@ struct StatsView: View {
         case "Light It Up": return ArcadeTheme.lightItUp
         case "Quiz Rush": return ArcadeTheme.quizRush
         default: return ArcadeTheme.accent
-        }
-    }
-
-    private func shortModeName(_ mode: String) -> String {
-        switch mode {
-        case "Tap Frenzy": return "Tap"
-        case "Light It Up": return "Light"
-        case "Quiz Rush": return "Quiz"
-        default: return mode == "—" ? "—" : mode
         }
     }
 

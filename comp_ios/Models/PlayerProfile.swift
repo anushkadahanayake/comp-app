@@ -85,10 +85,11 @@ struct PlayerProfile: Codable, Identifiable, Equatable, Sendable {
 }
 
 struct LeaderboardEntry: Identifiable, Equatable, Sendable {
-    var id: String { playerId }
+    let id: String
     let playerId: String
     let displayName: String
     let avatarSymbol: String
+    /// Overall board: total XP. Per-game board: same as bestScore for that mode.
     let totalXP: Int
     let bestScore: Int
     let gamesPlayed: Int

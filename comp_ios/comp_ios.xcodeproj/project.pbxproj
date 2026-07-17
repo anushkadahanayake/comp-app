@@ -33,6 +33,7 @@
 		863B62912FD970010088C895 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B628D2FD970010088C895 /* AuthService.swift */; };
 		863B62922FD970010088C895 /* PlayerStatsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B628E2FD970010088C895 /* PlayerStatsStore.swift */; };
 		863B62932FD970010088C895 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B628F2FD970010088C895 /* LoginView.swift */; };
+		863B62952FD971010088C895 /* GameModeLeaderboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B62942FD971010088C895 /* GameModeLeaderboardView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -64,6 +65,7 @@
 		863B628D2FD970010088C895 /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
 		863B628E2FD970010088C895 /* PlayerStatsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerStatsStore.swift; sourceTree = "<group>"; };
 		863B628F2FD970010088C895 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
+		863B62942FD971010088C895 /* GameModeLeaderboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameModeLeaderboardView.swift; sourceTree = "<group>"; };
 		868946602FD95D1B005E1193 /* comp_ios.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = comp_ios.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -105,6 +107,7 @@
 				863B62282FD964320088C895 /* ContentView.swift */,
 				863B62812FD969000088C895 /* ArcadeTabBar.swift */,
 				863B628F2FD970010088C895 /* LoginView.swift */,
+				863B62942FD971010088C895 /* GameModeLeaderboardView.swift */,
 				863B62502FD964320088C895 /* HomeView.swift */,
 				863B62562FD964320088C895 /* SettingsView.swift */,
 				863B62522FD964320088C895 /* TapFrenzyView.swift */,
@@ -250,6 +253,7 @@
 				863B62912FD970010088C895 /* AuthService.swift in Sources */,
 				863B62922FD970010088C895 /* PlayerStatsStore.swift in Sources */,
 				863B62932FD970010088C895 /* LoginView.swift in Sources */,
+				863B62952FD971010088C895 /* GameModeLeaderboardView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
