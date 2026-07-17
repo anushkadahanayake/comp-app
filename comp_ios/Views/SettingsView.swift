@@ -100,7 +100,7 @@ struct SettingsView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(player.displayName)
                             .font(.headline)
-                        Text(player.username)
+                        Text(player.isGuest ? "Guest" : player.username)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }

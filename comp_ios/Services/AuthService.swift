@@ -63,9 +63,24 @@ final class AuthService: ObservableObject {
             return
         }
 
+        guard !player.isGuest else {
+            authError = "That is a guest profile. Use Continue as Guest with a name."
+            return
+        }
+
         var restored = player
         restored.lastPlayedAt = Date()
         activate(restored)
+    }
+
+    func continueAsGuest(displayName: String) {
+        authError = nil
+        let name = displayName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard name.count >= 2 else {
+            authError = "Enter a nickname (at least 2 characters)."
+            return
+        }
+        activate(PlayerProfile.makeGuest(displayName: name))
     }
 
     // MARK: - Session
