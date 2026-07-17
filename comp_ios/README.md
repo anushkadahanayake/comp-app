@@ -1,82 +1,69 @@
 # Arcade Frenzy 🎮
 
-Arcade Frenzy is a premium, high-fidelity iOS arcade game hub featuring multiple interactive game modes: **Tap Frenzy**, **Light It Up**, and **Quiz Rush**. It features a modern Tab Bar shell, integrated GPS mapping, statistics dashboards, custom local daily reminders, and score sharing.
+Educational iOS arcade hub with three games, local player accounts, personal stats, and a map of play locations.
 
 ---
 
-## 🏗️ Architecture Overview
+## Documentation
 
-The app is built using clean architecture conforming to the **MVVM (Model-View-ViewModel)** design pattern. It organizes source files into logical modules:
+| Document | Description |
+|----------|-------------|
+| [System Architecture & Features](docs/SYSTEM_ARCHITECTURE_AND_FEATURES.md) | Full app structure, features, data flow, file map |
+| [Deep Coverage Score](docs/DEEP_COVERAGE_SCORE.md) | Score by skill area — what you covered and gaps |
+| [Tap Frenzy](docs/games/tap-frenzy.md) | 10s tap challenge rules & scoring |
+| [Light It Up](docs/games/light-it-up.md) | Lit-card reflex game & levels |
+| [Quiz Rush](docs/games/quiz-rush.md) | Trivia campaign & API behavior |
+
+---
+
+## Quick start
+
+1. Open `comp_ios.xcodeproj` in Xcode.
+2. Select a simulator or device → Run.
+3. **Sign Up**, **Log In**, or **Continue as Guest**.
+4. Play from **Home**; check **My Stats** and **Map**.
+
+---
+
+## Architecture (short)
+
+**MVVM** — Views (SwiftUI) · ViewModels (game logic) · Models (entities) · Services (auth, GPS, trivia, notifications).
 
 ```
-├── Models/
-│   ├── GameState.swift       # Holds GameState, Level, Card and GameMode definitions
-│   └── GameSession.swift     # Log record modeling user scores, dates, and locations
-├── Services/
-│   ├── TriviaService.swift   # Network layer calling Open Trivia DB API
-│   ├── LocationService.swift # Core Location service fetching player coordinates
-│   └── NotificationService.swift # Local notification reminder calendar scheduler
-├── ViewModels/
-│   ├── GameViewModel.swift   # Handles game loops, ticks, levels, and cards logic
-│   └── QuizViewModel.swift   # ViewModel for trivia loading, answers, and streak state
-└── Views/
-    ├── ContentView.swift     # Root view loading the 4-tab TabView navigation shell
-    ├── HomeView.swift        # Home screen with aurora particles and cascading entry cards
-    ├── TapFrenzyView.swift   # Speed tap mode view
-    ├── LightItUpView.swift   # Level-progressing grid tap view
-    ├── QuizRushView.swift    # API-powered Live Trivia game view
-    ├── StatsView.swift       # Statistics dashboard utilizing SwiftUI Charts
-    ├── GameMapView.swift     # MapKit displaying completed game locations with Markers
-    └── SettingsView.swift    # Game duration, reminder picker, and records reset
+Login → Home / Stats / Map / Settings
+              ↓
+         Tap Frenzy · Light It Up · Quiz Rush
 ```
 
-- **Models**: Defines raw entities (`Card`, `GameMode`, `GameSession`, `Level`) and structures.
-- **Views**: SwiftUI layers displaying layouts, fluid gradient backgrounds, overlays, and spring animations.
-- **ViewModels**: State controllers isolating reactive game logic, timers, question caching, and streak bonuses from the UI.
-- **Services**: Adapters handling platform SDK APIs (MapKit, Core Location, UserNotifications, and URLSession).
+Details: [docs/SYSTEM_ARCHITECTURE_AND_FEATURES.md](docs/SYSTEM_ARCHITECTURE_AND_FEATURES.md)
 
 ---
 
-## 🌟 Features List
+## Features (short)
 
-### 1. Game Modes
-- **Tap Frenzy**: A fast-paced tap-counting challenge. Features color-coded bonus buttons (+3) and penalty buttons (-2) with random spring offsets and double points multipliers.
-- **Light It Up**: A grid reflex game with 4 progressive levels. Lit cards scale up with custom glows. Integrates a 3-lives system and Proportionate Level-Up thresholds.
-- **Quiz Rush**: A live trivia challenge pulling questions dynamically from Open Trivia DB using modern async/await. Tracks answer streaks for bonus multipliers.
-
-### 2. Core Navigation Shell
-- A native `TabView` shell linking **Home**, **Stats**, **Map**, and **Settings** navigation stacks with standard SF Symbols (`gamecontroller`, `chart.bar`, `map`, `gear`).
-
-### 3. Core Location MapKit
-- Fetches device coordinates on each completed game session.
-- Displays standard MapKit `Marker` balloons pinned to played locations on the Map tab. Selecting a pin shows game mode and score.
-
-### 4. Stats & Analytics Charts
-- Persists session arrays locally via `UserDefaults`.
-- Displays personal best records, totals, and a list of recent games.
-- Uses SwiftUI **Charts** framework to render individual bar graphs for each mode.
-
-### 5. Local Daily Reminders
-- Integrates calendar notification scheduling (`UserNotifications`).
-- Allows selecting custom daily reminder times in Settings.
-
-### 6. Interactive Settings
-- Adjusts default round duration (30s / 60s / 90s) adapting game thresholds.
-- Allows clearing high scores and history logs with confirmation dialog safety checks.
+- Local accounts (username/password) + guest nickname
+- Per-player scores, stats, and session history
+- Map pins with optional GPS
+- Settings: round length, sound, haptics, daily reminder
+- Quiz questions from Open Trivia DB
 
 ---
 
-## ⚠️ Known Limitations
+## Project layout
 
-1. **API Rate Limiting**: The Open Trivia DB API has a brief rate-limiting cooldown if queried in rapid succession. A fallback Retry button is provided in `QuizRushView` to handle network issues.
-2. **GPS Accuracy**: In indoor environments, Core Location might return cached or less accurate coordinates. Location fetches use standard location checks, falling back to Cupertino coordinates in the simulator if location access is denied.
-3. **Local Notifications Storage**: Push schedules require explicit OS authorization. If a user denies notifications, the toggle in Settings automatically flips back.
+```
+Models/       Theme, catalog, sessions, player profile
+Views/        Screens + custom tab bar
+ViewModels/   Tap/Light + Quiz logic
+Services/     Auth, stats, location, trivia, notifications
+docs/         Architecture + per-game guides
+```
 
 ---
 
-## 🧠 Reflection
+## Notes
 
-Arcade Frenzy was designed as a showcase of modern Swift and SwiftUI techniques:
-- **Clean Structure**: Separating managers/adapters into `Services` and keeping Views decoupled from states via `ObservableObject` view-models makes adding features straightforward.
-- **Modern SwiftUI**: Standardized on iOS 17 features like the new `MapKit` builder (`Marker`, `MapCameraPosition`) and SwiftUI `Charts` for seamless visualization.
-- **Robust Layout**: Staged spring animation offsets and Fluid Aurora Blobs create an engaging user experience, making the application feel premium and responsive.
+- Data is stored **on device only** (`UserDefaults`).
+- Stats show the **signed-in player only**.
+- Simulator GPS often defaults to the US — set **Features → Location → Custom Location** for Sri Lanka testing.
+- Open Trivia DB may rate-limit; Quiz Rush retries and shows a retry UI when needed.
