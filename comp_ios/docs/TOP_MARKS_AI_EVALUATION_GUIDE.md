@@ -54,6 +54,7 @@ AI rewards **breadth + real iOS APIs**.
 | Feature | Why AI likes it | Where |
 |---------|-----------------|-------|
 | **3 different games** | Not one mechanic copied 3 times | Tap / Light / Quiz |
+| **Tap Frenzy levels + bonus time** | Progression inside a reflex game | Score levels, green/combo time |
 | **Local multi-account auth** | Sign up, login, guest, password eye | `AuthService`, `LoginView` |
 | **Per-player stats** | Isolation, not one global score | `PlayerStatsStore`, Stats |
 | **Overall + per-game leaderboards** | Competitive layer | Stats + in-game trophy |

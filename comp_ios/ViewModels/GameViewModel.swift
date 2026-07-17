@@ -33,15 +33,28 @@ final class GameViewModel: ObservableObject {
     @Published var lastTapDate: Date? = nil
     @Published var buttonOffset: CGSize = .zero
     @Published var buttonScale: CGFloat = 1.0
-    
+    /// Score-based stage inside one Tap Frenzy round (1…5).
+    @Published var tapFrenzyLevel: Int = 1
+    /// Progress-bar denominator; grows when bonus time is earned (capped).
+    @Published var tapFrenzyTimeCeiling: Double = 10.0
+    /// Short “+1.5s” / level banner text.
+    @Published var tapFrenzyBonusBanner: String?
+
     enum ButtonMode { case normal, bonus, penalty }
     @Published var buttonMode: ButtonMode = .normal
     @Published var isDoublePointsActive: Bool = false
     private var hasUsedDoublePointsThisRound: Bool = false
+    private var lastComboTimeBonusAtMultiplier = 0
+    private let tapFrenzyBaseTime = 10.0
+    private let tapFrenzyMaxTime = 25.0
+    /// Score thresholds to reach levels 2…5.
+    private let tapFrenzyLevelThresholds = [0, 25, 50, 80, 120]
 
     // Light It Up Game State
     @Published var cards: [Card] = []
     @Published var currentLevel: Level = .l1
+    @Published var lightItUpBonusBanner: String?
+    private let lightItUpBonusSeconds = 3.0
     
     // Haptic Feedback Trigger Communication
     enum HapticType {
@@ -69,7 +82,11 @@ final class GameViewModel: ObservableObject {
         
         switch currentMode {
         case .tapFrenzy:
-            timeLeft = 10.0
+            timeLeft = tapFrenzyBaseTime
+            tapFrenzyTimeCeiling = tapFrenzyBaseTime
+            tapFrenzyLevel = 1
+            tapFrenzyBonusBanner = nil
+            lastComboTimeBonusAtMultiplier = 0
             multiplier = 1
             lastTapDate = nil
             buttonOffset = .zero
@@ -77,6 +94,7 @@ final class GameViewModel: ObservableObject {
             buttonMode = .normal
             isDoublePointsActive = false
             hasUsedDoublePointsThisRound = false
+            showLevelUpAlert = false
             
             startTapFrenzyTimers()
             
@@ -84,6 +102,7 @@ final class GameViewModel: ObservableObject {
             timeLeft = roundDurationSetting
             lives = 3
             showLevelUpAlert = false
+            lightItUpBonusBanner = nil
             currentLevel = .l1
             
             initializeCards(for: .l1)
@@ -109,8 +128,10 @@ final class GameViewModel: ObservableObject {
             timeLeft = max(0.0, timeLeft - 0.05)
             
             if currentMode == .tapFrenzy {
-                let fraction = timeLeft / 10.0
-                self.buttonScale = max(0.4, 0.4 + 0.6 * fraction)
+                let ceiling = max(tapFrenzyTimeCeiling, 0.1)
+                let fraction = timeLeft / ceiling
+                let minScale = max(0.28, 0.42 - Double(tapFrenzyLevel - 1) * 0.03)
+                self.buttonScale = CGFloat(max(minScale, minScale + (1.0 - minScale) * fraction))
             } else if currentMode == .lightItUp {
                 // Determine level progression dynamically based on roundDurationSetting
                 let elapsed = roundDurationSetting - timeLeft
@@ -182,18 +203,27 @@ final class GameViewModel: ObservableObject {
         // Clear all active lit states
         for i in 0..<cards.count {
             cards[i].isLit = false
+            cards[i].isBonusTime = false
         }
         
         // Pick random unique indices to light up based on Level's active lit count
         let needed = currentLevel.activeLitCount
-        var selectedIndices: Set<Int> = []
+        var selectedIndices: [Int] = []
         while selectedIndices.count < needed && selectedIndices.count < cards.count {
             let rand = Int.random(in: 0..<cards.count)
-            selectedIndices.insert(rand)
+            if !selectedIndices.contains(rand) {
+                selectedIndices.append(rand)
+            }
         }
         
         for index in selectedIndices {
             cards[index].isLit = true
+        }
+
+        // When 2 cards light: one normal score card + one bonus-time card.
+        if selectedIndices.count >= 2 {
+            let bonusIndex = selectedIndices.randomElement()!
+            cards[bonusIndex].isBonusTime = true
         }
         
         // Re-schedule card timer to current level's window
@@ -227,6 +257,7 @@ final class GameViewModel: ObservableObject {
 
         if buttonMode == .penalty {
             multiplier = 1
+            lastComboTimeBonusAtMultiplier = 0
             tapCount = max(0, tapCount - 5)
             lastTapDate = nil
             hapticTrigger = .error
@@ -234,19 +265,31 @@ final class GameViewModel: ObservableObject {
         }
 
         let now = Date()
+        var didCombo = false
         if let last = lastTapDate, now.timeIntervalSince(last) <= 0.5 {
             multiplier += 1
+            didCombo = true
         } else {
             multiplier = 1
+            lastComboTimeBonusAtMultiplier = 0
         }
         lastTapDate = now
 
         var points = multiplier
+        var timeBonus: Double = 0
+
         switch buttonMode {
         case .bonus:
             points += 1
+            timeBonus += 1.0 // green window → extra time
         case .normal, .penalty:
             break
+        }
+
+        // Combo milestones (×3, ×5, ×7…) grant small time boosts.
+        if didCombo, multiplier >= 3, multiplier % 2 == 1, multiplier != lastComboTimeBonusAtMultiplier {
+            timeBonus += 0.8
+            lastComboTimeBonusAtMultiplier = multiplier
         }
 
         if isDoublePointsActive {
@@ -254,7 +297,52 @@ final class GameViewModel: ObservableObject {
         }
 
         tapCount += points
+        if timeBonus > 0 {
+            grantTapFrenzyTime(timeBonus, banner: String(format: "+%.1fs", timeBonus))
+        }
+        evaluateTapFrenzyLevel()
         hapticTrigger = .medium
+    }
+
+    private func evaluateTapFrenzyLevel() {
+        var newLevel = 1
+        for (index, threshold) in tapFrenzyLevelThresholds.enumerated() where tapCount >= threshold {
+            newLevel = index + 1
+        }
+        newLevel = min(5, newLevel)
+        guard newLevel > tapFrenzyLevel else { return }
+
+        tapFrenzyLevel = newLevel
+        grantTapFrenzyTime(2.0, banner: "LEVEL \(newLevel)! +2s")
+        showLevelUpAlert = true
+        hapticTrigger = .success
+        // Faster movement / mode swaps at higher levels.
+        startTapFrenzyTimers()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { [weak self] in
+            self?.showLevelUpAlert = false
+        }
+    }
+
+    private func grantTapFrenzyTime(_ seconds: Double, banner: String) {
+        let room = tapFrenzyMaxTime - timeLeft
+        guard room > 0.05 else { return }
+        let added = min(seconds, room)
+        timeLeft += added
+        tapFrenzyTimeCeiling = min(tapFrenzyMaxTime, max(tapFrenzyTimeCeiling, timeLeft))
+        tapFrenzyBonusBanner = banner
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+            if self?.tapFrenzyBonusBanner == banner {
+                self?.tapFrenzyBonusBanner = nil
+            }
+        }
+    }
+
+    private var tapFrenzyMoveInterval: TimeInterval {
+        max(0.75, 2.0 - Double(tapFrenzyLevel - 1) * 0.28)
+    }
+
+    private var tapFrenzyColorInterval: TimeInterval {
+        max(1.1, 3.0 - Double(tapFrenzyLevel - 1) * 0.35)
     }
 
     // MARK: - Light It Up Gameplay Actions
@@ -263,10 +351,15 @@ final class GameViewModel: ObservableObject {
         guard index >= 0 && index < cards.count else { return }
         
         if cards[index].isLit {
-            // Correct tap!
+            let wasBonus = cards[index].isBonusTime
             cards[index].isLit = false
-            tapCount += 1
+            cards[index].isBonusTime = false
+            tapCount += wasBonus ? 2 : 1
             hapticTrigger = .success
+
+            if wasBonus {
+                grantLightItUpTime(lightItUpBonusSeconds)
+            }
             
             // If all active lit cards are successfully cleared, trigger new ones immediately
             let anyLit = cards.contains(where: { $0.isLit })
@@ -284,13 +377,37 @@ final class GameViewModel: ObservableObject {
         }
     }
 
+    private func grantLightItUpTime(_ seconds: Double) {
+        let maxTime = roundDurationSetting + 20.0
+        let room = maxTime - timeLeft
+        guard room > 0.05 else {
+            lightItUpBonusBanner = "TIME MAX"
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { [weak self] in
+                if self?.lightItUpBonusBanner == "TIME MAX" {
+                    self?.lightItUpBonusBanner = nil
+                }
+            }
+            return
+        }
+        let added = min(seconds, room)
+        timeLeft += added
+        let banner = String(format: "+%.0fs TIME!", added)
+        lightItUpBonusBanner = banner
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+            if self?.lightItUpBonusBanner == banner {
+                self?.lightItUpBonusBanner = nil
+            }
+        }
+    }
+
     // MARK: - Tap Frenzy Timer Management
     private func startTapFrenzyTimers() {
         moveTimer?.invalidate()
-        moveTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] _ in
+        moveTimer = Timer.scheduledTimer(withTimeInterval: tapFrenzyMoveInterval, repeats: true) { [weak self] _ in
             guard let self = self, self.state == .running else { return }
-            let dx = CGFloat.random(in: -120...120)
-            let dy = CGFloat.random(in: -200...200)
+            let spread = 100 + CGFloat(self.tapFrenzyLevel) * 12
+            let dx = CGFloat.random(in: -spread...spread)
+            let dy = CGFloat.random(in: -(spread + 40)...(spread + 40))
             DispatchQueue.main.async {
                 self.buttonOffset = CGSize(width: dx, height: dy)
             }
@@ -298,7 +415,7 @@ final class GameViewModel: ObservableObject {
         RunLoop.main.add(moveTimer!, forMode: .common)
 
         colorTimer?.invalidate()
-        colorTimer = Timer.scheduledTimer(withTimeInterval: 3.0, repeats: true) { [weak self] _ in
+        colorTimer = Timer.scheduledTimer(withTimeInterval: tapFrenzyColorInterval, repeats: true) { [weak self] _ in
             guard let self = self, self.state == .running else { return }
             DispatchQueue.main.async {
                 switch self.buttonMode {
@@ -313,21 +430,23 @@ final class GameViewModel: ObservableObject {
         }
         RunLoop.main.add(colorTimer!, forMode: .common)
 
-        doublePointsTimer?.invalidate()
-        let fireIn = max(1.0, Double(Int.random(in: 2...8)))
-        doublePointsTimer = Timer.scheduledTimer(withTimeInterval: fireIn, repeats: false) { [weak self] _ in
-            guard let self = self, self.state == .running else { return }
-            DispatchQueue.main.async {
-                self.isDoublePointsActive = true
-                self.hasUsedDoublePointsThisRound = true
-                
-                self.doublePointsEndTimer?.invalidate()
-                self.doublePointsEndTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: false) { [weak self] _ in
-                    self?.isDoublePointsActive = false
+        // Only schedule the one-shot double-points event once per round.
+        if !hasUsedDoublePointsThisRound && doublePointsTimer == nil && !isDoublePointsActive {
+            let fireIn = max(1.0, Double(Int.random(in: 2...8)))
+            doublePointsTimer = Timer.scheduledTimer(withTimeInterval: fireIn, repeats: false) { [weak self] _ in
+                guard let self = self, self.state == .running else { return }
+                DispatchQueue.main.async {
+                    self.isDoublePointsActive = true
+                    self.hasUsedDoublePointsThisRound = true
+
+                    self.doublePointsEndTimer?.invalidate()
+                    self.doublePointsEndTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: false) { [weak self] _ in
+                        self?.isDoublePointsActive = false
+                    }
                 }
             }
+            RunLoop.main.add(doublePointsTimer!, forMode: .common)
         }
-        RunLoop.main.add(doublePointsTimer!, forMode: .common)
     }
 
     private func stopTapFrenzyTimers() {
@@ -345,7 +464,7 @@ final class GameViewModel: ObservableObject {
         stopTapFrenzyTimers()
 
         state = .idle
-        timeLeft = currentMode == .tapFrenzy ? 10.0 : roundDurationSetting
+        timeLeft = currentMode == .tapFrenzy ? tapFrenzyBaseTime : roundDurationSetting
         tapCount = 0
         lives = 3
         showLevelUpAlert = false
@@ -356,6 +475,11 @@ final class GameViewModel: ObservableObject {
         buttonMode = .normal
         isDoublePointsActive = false
         hasUsedDoublePointsThisRound = false
+        tapFrenzyLevel = 1
+        tapFrenzyTimeCeiling = tapFrenzyBaseTime
+        tapFrenzyBonusBanner = nil
+        lastComboTimeBonusAtMultiplier = 0
+        lightItUpBonusBanner = nil
         
         cards.removeAll()
         isNewHighScore = false

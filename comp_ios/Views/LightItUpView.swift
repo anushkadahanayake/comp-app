@@ -104,7 +104,7 @@ struct LightItUpView: View {
                 .padding(.horizontal)
                 .padding(.top, 8)
                 
-                // Countdown progress bar based on roundDurationSetting
+                // Countdown progress bar (grows when bonus-time cards are tapped)
                 VStack(spacing: 8) {
                     HStack {
                         Text("Round Time")
@@ -112,6 +112,11 @@ struct LightItUpView: View {
                             .fontWeight(.bold)
                             .foregroundStyle(.secondary)
                         Spacer()
+                        if let bonus = vm.lightItUpBonusBanner {
+                            Text(bonus)
+                                .font(.caption.bold())
+                                .foregroundStyle(.green)
+                        }
                         Text(String(format: "%.1fs", vm.timeLeft))
                             .font(.system(.subheadline, design: .rounded))
                             .fontWeight(.bold)
@@ -120,6 +125,7 @@ struct LightItUpView: View {
                     .padding(.horizontal)
                     
                     GeometryReader { barProxy in
+                        let ceiling = max(vm.roundDurationSetting, vm.timeLeft, 0.1)
                         ZStack(alignment: .leading) {
                             Capsule()
                                 .fill(Color.white.opacity(0.08))
@@ -127,7 +133,7 @@ struct LightItUpView: View {
                             
                             Capsule()
                                 .fill(vm.timeLeft <= 10.0 ? Color.red : Color.orange)
-                                .frame(width: max(0, barProxy.size.width * CGFloat(vm.timeLeft) / CGFloat(vm.roundDurationSetting)), height: 10)
+                                .frame(width: max(0, barProxy.size.width * CGFloat(vm.timeLeft / ceiling)), height: 10)
                                 .animation(.linear(duration: 0.05), value: vm.timeLeft)
                                 .shadow(color: (vm.timeLeft <= 10.0 ? Color.red : Color.orange).opacity(0.5), radius: 6)
                         }
@@ -203,8 +209,21 @@ struct LightItUpView: View {
                                     ZStack {
                                         if card.isLit {
                                             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                                .fill(levelGradient(for: vm.currentLevel))
-                                                .shadow(color: levelGlowColor(for: vm.currentLevel).opacity(0.7), radius: 15, x: 0, y: 0)
+                                                .fill(
+                                                    card.isBonusTime
+                                                        ? LinearGradient(colors: [.yellow, .orange], startPoint: .topLeading, endPoint: .bottomTrailing)
+                                                        : levelGradient(for: vm.currentLevel)
+                                                )
+                                                .shadow(
+                                                    color: (card.isBonusTime ? Color.yellow : levelGlowColor(for: vm.currentLevel)).opacity(0.75),
+                                                    radius: 15, x: 0, y: 0
+                                                )
+                                            if card.isBonusTime {
+                                                Image(systemName: "clock.badge.checkmark.fill")
+                                                    .font(.title2.weight(.bold))
+                                                    .foregroundStyle(.white)
+                                                    .shadow(color: .black.opacity(0.35), radius: 2)
+                                            }
                                         } else {
                                             RoundedRectangle(cornerRadius: 16, style: .continuous)
                                                 .fill(Color(red: 0.10, green: 0.10, blue: 0.18))
@@ -214,11 +233,17 @@ struct LightItUpView: View {
                                     .scaleEffect(card.isLit ? 1.06 : 1.0)
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                            .stroke(card.isLit ? Color.white : Color.white.opacity(0.15), lineWidth: card.isLit ? 2 : 1)
+                                            .stroke(
+                                                card.isLit
+                                                    ? (card.isBonusTime ? Color.yellow : Color.white)
+                                                    : Color.white.opacity(0.15),
+                                                lineWidth: card.isLit ? 2 : 1
+                                            )
                                     )
                                 }
                                 .buttonStyle(PlainButtonStyle())
                                 .animation(.spring(response: 0.22, dampingFraction: 0.6), value: card.isLit)
+                                .animation(.spring(response: 0.22, dampingFraction: 0.6), value: card.isBonusTime)
                             }
                         }
                         .padding(20)
@@ -334,23 +359,30 @@ struct LightItUpView: View {
                         .cornerRadius(24)
                         .transition(.opacity)
                     } else if vm.state == .idle {
-                        // Game Start Button
-                        Button(action: {
-                            withAnimation {
-                                vm.startGame()
+                        VStack(spacing: 14) {
+                            Text("From Level 3: 2 cards light up — gold clock = +3s")
+                                .font(.caption)
+                                .foregroundStyle(.white.opacity(0.6))
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 20)
+
+                            Button(action: {
+                                withAnimation {
+                                    vm.startGame()
+                                }
+                            }) {
+                                Text("START")
+                                    .font(.system(.headline, design: .rounded))
+                                    .fontWeight(.black)
+                                    .foregroundStyle(.white)
+                                    .padding(.vertical, 16)
+                                    .padding(.horizontal, 48)
+                                    .background(
+                                        LinearGradient(colors: [.orange, .yellow], startPoint: .leading, endPoint: .trailing)
+                                    )
+                                    .clipShape(Capsule())
+                                    .shadow(color: .orange.opacity(0.4), radius: 12, x: 0, y: 0)
                             }
-                        }) {
-                            Text("START")
-                                .font(.system(.headline, design: .rounded))
-                                .fontWeight(.black)
-                                .foregroundStyle(.white)
-                                .padding(.vertical, 16)
-                                .padding(.horizontal, 48)
-                                .background(
-                                    LinearGradient(colors: [.orange, .yellow], startPoint: .leading, endPoint: .trailing)
-                                )
-                                .clipShape(Capsule())
-                                .shadow(color: .orange.opacity(0.4), radius: 12, x: 0, y: 0)
                         }
                     }
                 }

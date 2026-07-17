@@ -32,83 +32,8 @@ struct TapFrenzyView: View {
                     .ignoresSafeArea()
                 
                 VStack(spacing: 24) {
-                    // Header displaying Scores
-                    HStack(spacing: 16) {
-                        VStack(spacing: 4) {
-                            Text("SCORE")
-                                .font(.system(.caption, design: .rounded))
-                                .fontWeight(.black)
-                                .foregroundStyle(.cyan)
-                            Text("\(vm.tapCount)")
-                                .font(.system(.title, design: .rounded))
-                                .fontWeight(.black)
-                                .foregroundStyle(.white)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                        .background(Color(red: 0.08, green: 0.08, blue: 0.15))
-                        .cornerRadius(18)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 18)
-                                .stroke(Color.cyan.opacity(0.3), lineWidth: 1.5)
-                        )
-                        
-                        VStack(spacing: 4) {
-                            Text("HIGH SCORE")
-                                .font(.system(.caption, design: .rounded))
-                                .fontWeight(.black)
-                                .foregroundStyle(.purple)
-                            Text("\(highScoreTapFrenzy)")
-                                .font(.system(.title, design: .rounded))
-                                .fontWeight(.black)
-                                .foregroundStyle(.white)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                        .background(Color(red: 0.08, green: 0.08, blue: 0.15))
-                        .cornerRadius(18)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 18)
-                                .stroke(Color.purple.opacity(0.3), lineWidth: 1.5)
-                        )
-                    }
-                    .padding(.horizontal)
-                    .padding(.top, 8)
-
-                    // 10s countdown bar
-                    VStack(spacing: 8) {
-                        HStack {
-                            Text("Time Remaining")
-                                .font(.subheadline)
-                                .fontWeight(.bold)
-                                .foregroundStyle(.secondary)
-                            Spacer()
-                            Text(String(format: "%.1fs", vm.timeLeft))
-                                .font(.system(.subheadline, design: .rounded))
-                                .fontWeight(.bold)
-                                .foregroundStyle(vm.timeLeft <= 3.0 ? .red : .cyan)
-                        }
-                        .padding(.horizontal)
-                        
-                        GeometryReader { barProxy in
-                            let barWidth = barProxy.size.width
-                            let progressWidth = max(0.0, barWidth * CGFloat(vm.timeLeft) / 10.0)
-                            
-                            ZStack(alignment: .leading) {
-                                Capsule()
-                                    .fill(Color.white.opacity(0.08))
-                                    .frame(height: 10)
-                                
-                                Capsule()
-                                    .fill(vm.timeLeft <= 3.0 ? Color.red : Color.cyan)
-                                    .frame(width: progressWidth, height: 10)
-                                    .animation(.linear(duration: 0.05), value: vm.timeLeft)
-                                    .shadow(color: (vm.timeLeft <= 3.0 ? Color.red : Color.cyan).opacity(0.5), radius: 6)
-                            }
-                        }
-                        .frame(height: 10)
-                        .padding(.horizontal)
-                    }
+                    statsHeader
+                    timeRemainingBar
 
                     // Play Area
                     ZStack {
@@ -119,6 +44,22 @@ struct TapFrenzyView: View {
                                     .stroke(vm.buttonMode == .penalty ? Color.gray.opacity(0.5) : Color.white.opacity(0.12), lineWidth: 1.5)
                             )
                             .shadow(color: (vm.buttonMode == .penalty ? Color.gray : Color.cyan).opacity(0.05), radius: 10)
+
+                        if vm.showLevelUpAlert && vm.state == .running {
+                            Text("LEVEL \(vm.tapFrenzyLevel)!")
+                                .font(.system(.title, design: .rounded))
+                                .fontWeight(.black)
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 28)
+                                .padding(.vertical, 14)
+                                .background(
+                                    LinearGradient(colors: [.orange, .yellow], startPoint: .leading, endPoint: .trailing),
+                                    in: Capsule()
+                                )
+                                .shadow(color: .orange.opacity(0.5), radius: 12)
+                                .zIndex(20)
+                                .transition(.scale.combined(with: .opacity))
+                        }
 
                         // Target button core
                         if vm.state == .running || vm.state == .finished {
@@ -274,6 +215,10 @@ struct TapFrenzyView: View {
                                         .fontWeight(.bold)
                                         .foregroundStyle(.secondary)
                                 }
+
+                                Text("Reached Level \(vm.tapFrenzyLevel)")
+                                    .font(.caption.bold())
+                                    .foregroundStyle(.orange)
                                 
                                 HStack(spacing: 16) {
                                     Button(action: {
@@ -334,9 +279,9 @@ struct TapFrenzyView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
                     .padding(.horizontal)
 
-                    // Multiplier and Double Points indicator
+                    // Multiplier / level / double points
                     if vm.state == .running {
-                        HStack(spacing: 16) {
+                        HStack(spacing: 10) {
                             HStack(spacing: 6) {
                                 Image(systemName: "bolt.fill")
                                     .foregroundStyle(.yellow)
@@ -346,29 +291,42 @@ struct TapFrenzyView: View {
                                     .foregroundStyle(.white)
                             }
                             .padding(.vertical, 8)
-                            .padding(.horizontal, 16)
+                            .padding(.horizontal, 14)
                             .background(Color.yellow.opacity(0.15))
                             .clipShape(Capsule())
-                            .overlay(
-                                Capsule().stroke(Color.yellow.opacity(0.3), lineWidth: 1)
-                            )
+
+                            Text("Lv \(vm.tapFrenzyLevel)")
+                                .font(.system(.subheadline, design: .rounded))
+                                .fontWeight(.bold)
+                                .foregroundStyle(.white)
+                                .padding(.vertical, 8)
+                                .padding(.horizontal, 14)
+                                .background(Color.orange.opacity(0.25))
+                                .clipShape(Capsule())
                             
                             if vm.isDoublePointsActive {
-                                Text("DOUBLE POINTS!")
+                                Text("DOUBLE!")
                                     .font(.system(.subheadline, design: .rounded))
                                     .fontWeight(.bold)
                                     .foregroundStyle(.white)
                                     .padding(.vertical, 8)
-                                    .padding(.horizontal, 16)
+                                    .padding(.horizontal, 14)
                                     .background(
                                         LinearGradient(colors: [.orange, .yellow], startPoint: .leading, endPoint: .trailing)
                                     )
                                     .clipShape(Capsule())
-                                    .shadow(color: .orange.opacity(0.5), radius: 10, x: 0, y: 0)
                                     .transition(.scale.combined(with: .opacity))
                             }
                         }
                         .transition(.opacity)
+                    }
+
+                    if vm.state == .idle {
+                        Text("Score up to level up · Combos & green taps add time (max 25s)")
+                            .font(.caption)
+                            .foregroundStyle(.white.opacity(0.55))
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 24)
                     }
 
                     if vm.state == .idle || vm.state == .finished {
@@ -443,6 +401,74 @@ struct TapFrenzyView: View {
             DispatchQueue.main.async {
                 vm.hapticTrigger = nil
             }
+        }
+    }
+
+    private var statsHeader: some View {
+        HStack(spacing: 10) {
+            headerPill(title: "SCORE", value: "\(vm.tapCount)", accent: .cyan)
+            headerPill(title: "LEVEL", value: "\(vm.tapFrenzyLevel)", accent: .orange)
+            headerPill(title: "BEST", value: "\(highScoreTapFrenzy)", accent: .purple)
+        }
+        .padding(.horizontal)
+        .padding(.top, 8)
+    }
+
+    private func headerPill(title: String, value: String, accent: Color) -> some View {
+        VStack(spacing: 4) {
+            Text(title)
+                .font(.system(.caption2, design: .rounded))
+                .fontWeight(.black)
+                .foregroundStyle(accent)
+            Text(value)
+                .font(.system(.title2, design: .rounded))
+                .fontWeight(.black)
+                .foregroundStyle(.white)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 12)
+        .background(Color(red: 0.08, green: 0.08, blue: 0.15))
+        .cornerRadius(16)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(accent.opacity(0.35), lineWidth: 1.5)
+        )
+    }
+
+    private var timeRemainingBar: some View {
+        VStack(spacing: 8) {
+            HStack {
+                Text("Time Remaining")
+                    .font(.subheadline)
+                    .fontWeight(.bold)
+                    .foregroundStyle(.secondary)
+                Spacer()
+                if let bonus = vm.tapFrenzyBonusBanner {
+                    Text(bonus)
+                        .font(.caption.bold())
+                        .foregroundStyle(.green)
+                }
+                Text(String(format: "%.1fs", vm.timeLeft))
+                    .font(.system(.subheadline, design: .rounded))
+                    .fontWeight(.bold)
+                    .foregroundStyle(vm.timeLeft <= 3.0 ? .red : .cyan)
+            }
+            .padding(.horizontal)
+
+            GeometryReader { barProxy in
+                let ceiling = max(vm.tapFrenzyTimeCeiling, 0.1)
+                let progressWidth = max(0.0, barProxy.size.width * CGFloat(vm.timeLeft / ceiling))
+                ZStack(alignment: .leading) {
+                    Capsule()
+                        .fill(Color.white.opacity(0.08))
+                        .frame(height: 10)
+                    Capsule()
+                        .fill(vm.timeLeft <= 3.0 ? Color.red : Color.cyan)
+                        .frame(width: progressWidth, height: 10)
+                }
+            }
+            .frame(height: 10)
+            .padding(.horizontal)
         }
     }
 

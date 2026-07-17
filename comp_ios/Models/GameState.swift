@@ -18,6 +18,8 @@ nonisolated enum GameMode: String, CaseIterable, Identifiable, Hashable, Sendabl
 nonisolated struct Card: Identifiable, Equatable, Sendable {
     let id: Int
     var isLit: Bool = false
+    /// Gold “clock” card — tapping it grants extra round time.
+    var isBonusTime: Bool = false
 }
 
 nonisolated enum Level: CaseIterable, Sendable {
@@ -50,9 +52,10 @@ nonisolated enum Level: CaseIterable, Sendable {
         }
     }
     
+    /// From Level 3 up, two cards light at once (one normal + one bonus-time).
     var activeLitCount: Int {
         switch self {
-        case .l4: return 2
+        case .l3, .l4: return 2
         default: return 1
         }
     }

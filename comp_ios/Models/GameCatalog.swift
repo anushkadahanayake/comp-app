@@ -33,7 +33,7 @@ struct ArcadeGame: Identifiable {
     static let all: [ArcadeGame] = [
         ArcadeGame(
             mode: .tapFrenzy,
-            subtitle: "10s speed tap challenge",
+            subtitle: "Level up · earn time · combo taps",
             imageName: "tapFrenzyHero",
             gradient: [ArcadeTheme.tapFrenzy, ArcadeTheme.accentSecondary],
             icon: "bolt.fill",
@@ -41,7 +41,7 @@ struct ArcadeGame: Identifiable {
         ),
         ArcadeGame(
             mode: .lightItUp,
-            subtitle: "Whack-a-mole reflex mode",
+            subtitle: "Lit cards · gold clock = extra time",
             imageName: "lightItUpHero",
             gradient: [ArcadeTheme.lightItUp, ArcadeTheme.accentSoft],
             icon: "lightbulb.fill",

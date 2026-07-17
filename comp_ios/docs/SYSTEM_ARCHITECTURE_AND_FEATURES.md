@@ -16,8 +16,8 @@ Educational iOS arcade hub. This document helps anyone quickly understand **what
 
 **Games**
 
-1. [Tap Frenzy](games/tap-frenzy.md) — 10s speed tap  
-2. [Light It Up](games/light-it-up.md) — lit-card reflex grid  
+1. [Tap Frenzy](games/tap-frenzy.md) — levels, bonus time, combos (starts 10s, max 25s)  
+2. [Light It Up](games/light-it-up.md) — lit-card reflex + bonus-time gold cards  
 3. [Quiz Rush](games/quiz-rush.md) — trivia campaign (Open Trivia DB)
 
 ---
