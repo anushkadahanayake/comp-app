@@ -105,10 +105,13 @@ comp_ios/
 | Sign Up | Username (≥3) + password (≥4), stored locally |
 | Log In | Username + password (SHA256 hash check) |
 | Guest | Nickname only (≥2); unique guest id; no password |
-| Log Out | Returns to login; other accounts stay on device |
+| Resume guest | Saved guests listed on login (kept **30 days** on device) |
+| Upgrade guest | Settings → “Create Account & Keep Scores” — same player id, keeps records |
+| Guest log out warning | Explains resume / risk of losing data if a new guest is created |
+| Log Out | Clears session only; profiles stay on device |
 | Isolation | Each player has own high scores & session history |
 
-**Files:** `LoginView.swift`, `AuthService.swift`, `PlayerProfile.swift`
+**Files:** `LoginView.swift`, `AuthService.swift`, `PlayerProfile.swift`, `SettingsView.swift`
 
 ### 4.2 Home
 

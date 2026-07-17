@@ -3,6 +3,8 @@ import SwiftUI
 struct ContentView: View {
     @ObservedObject private var auth = AuthService.shared
     @State private var selectedTab: ArcadeTab = .home
+    /// Hidden while a game is pushed so HUD / results are not cramped by the tab bar.
+    @State private var hideTabBar = false
     @ObservedObject private var locationService = LocationService.shared
 
     var body: some View {
@@ -21,7 +23,7 @@ struct ContentView: View {
             Group {
                 switch selectedTab {
                 case .home:
-                    NavigationStack { HomeView() }
+                    NavigationStack { HomeView(hideTabBar: $hideTabBar) }
                 case .stats:
                     NavigationStack { StatsView() }
                 case .map:
@@ -31,11 +33,16 @@ struct ContentView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .padding(.bottom, 72)
+            .padding(.bottom, hideTabBar ? 0 : 72)
 
-            ArcadeTabBar(selectedTab: $selectedTab)
+            if !hideTabBar {
+                ArcadeTabBar(selectedTab: $selectedTab)
+            }
         }
         .ignoresSafeArea(.keyboard)
+        .onChange(of: selectedTab) { _, _ in
+            hideTabBar = false
+        }
         .onAppear {
             locationService.requestPermission()
             locationService.startUpdating()

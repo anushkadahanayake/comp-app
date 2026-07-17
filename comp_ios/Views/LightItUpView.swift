@@ -33,76 +33,25 @@ struct LightItUpView: View {
             LevelMatchingAuroraBackground(level: vm.currentLevel)
                 .ignoresSafeArea()
             
-            VStack(spacing: 24) {
-                // Header displaying Scores & Lives System
-                HStack(spacing: 16) {
-                    VStack(spacing: 4) {
-                        Text("SCORE")
-                            .font(.system(.caption, design: .rounded))
-                            .fontWeight(.black)
-                            .foregroundStyle(.cyan)
-                        Text("\(vm.tapCount)")
-                            .font(.system(.title, design: .rounded))
-                            .fontWeight(.black)
-                            .foregroundStyle(.white)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-                    .background(Color(red: 0.08, green: 0.08, blue: 0.15))
-                    .cornerRadius(18)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 18)
-                            .stroke(Color.cyan.opacity(0.3), lineWidth: 1.5)
+            VStack(spacing: 16) {
+                // Header: icon on top of each card
+                HStack(spacing: 10) {
+                    GameStatCard(
+                        title: "SCORE",
+                        value: "\(vm.tapCount)",
+                        systemImage: "star.fill",
+                        accent: .cyan
                     )
-                    
-                    VStack(spacing: 4) {
-                        Text("LIVES")
-                            .font(.system(.caption, design: .rounded))
-                            .fontWeight(.black)
-                            .foregroundStyle(.red)
-                        
-                        HStack(spacing: 4) {
-                            ForEach(1...3, id: \.self) { heartIndex in
-                                Image(systemName: heartIndex <= vm.lives ? "heart.fill" : "heart")
-                                    .font(.system(size: 16))
-                                    .foregroundStyle(heartIndex <= vm.lives ? .red : .gray.opacity(0.4))
-                                    .scaleEffect(heartIndex <= vm.lives ? 1.05 : 0.85)
-                                    .shadow(color: heartIndex <= vm.lives ? .red.opacity(0.6) : .clear, radius: 4)
-                                    .animation(.spring(response: 0.22, dampingFraction: 0.65), value: vm.lives)
-                            }
-                        }
-                        .frame(height: 24)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-                    .background(Color(red: 0.08, green: 0.08, blue: 0.15))
-                    .cornerRadius(18)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 18)
-                            .stroke(Color.red.opacity(0.3), lineWidth: 1.5)
-                    )
-                    
-                    VStack(spacing: 4) {
-                        Text("HIGH SCORE")
-                            .font(.system(.caption, design: .rounded))
-                            .fontWeight(.black)
-                            .foregroundStyle(.orange)
-                        Text("\(highScoreLightItUp)")
-                            .font(.system(.title, design: .rounded))
-                            .fontWeight(.black)
-                            .foregroundStyle(.white)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-                    .background(Color(red: 0.08, green: 0.08, blue: 0.15))
-                    .cornerRadius(18)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 18)
-                            .stroke(Color.orange.opacity(0.3), lineWidth: 1.5)
+                    GameLivesCard(lives: vm.lives, maxLives: 3)
+                    GameStatCard(
+                        title: "BEST",
+                        value: "\(highScoreLightItUp)",
+                        systemImage: "crown.fill",
+                        accent: .orange
                     )
                 }
                 .padding(.horizontal)
-                .padding(.top, 8)
+                .padding(.top, 4)
                 
                 // Countdown progress bar (grows when bonus-time cards are tapped)
                 VStack(spacing: 8) {
@@ -168,12 +117,10 @@ struct LightItUpView: View {
                         .fontWeight(.black)
                         .foregroundStyle(.orange)
                     
-                    if vm.currentLevel == .l4 {
-                        Text("• 🔥 2 CARDS LIT!")
-                            .font(.caption)
-                            .fontWeight(.black)
-                            .foregroundStyle(.red)
-                            .shadow(color: .red.opacity(0.5), radius: 4)
+                    if vm.currentLevel != .l1 {
+                        Text("Gold clock = +3s")
+                            .font(.caption2.weight(.bold))
+                            .foregroundStyle(.yellow)
                     }
                 }
                 .padding(.horizontal)
@@ -305,11 +252,10 @@ struct LightItUpView: View {
                             }
                             
                             if vm.isNewHighScore {
-                                Text("🎉 NEW HIGH SCORE! 🎉")
-                                    .font(.caption)
-                                    .fontWeight(.bold)
+                                Label("NEW HIGH SCORE!", systemImage: "trophy.fill")
+                                    .font(.caption.weight(.bold))
                                     .foregroundStyle(.white)
-                                    .padding(.vertical, 6)
+                                    .padding(.vertical, 8)
                                     .padding(.horizontal, 16)
                                     .background(
                                         LinearGradient(colors: [.orange, .yellow], startPoint: .leading, endPoint: .trailing)
@@ -360,9 +306,9 @@ struct LightItUpView: View {
                         .transition(.opacity)
                     } else if vm.state == .idle {
                         VStack(spacing: 14) {
-                            Text("From Level 3: 2 cards light up — gold clock = +3s")
+                            Label("From Level 2: 2 cards — tap the gold clock for +3s", systemImage: "clock.badge.checkmark.fill")
                                 .font(.caption)
-                                .foregroundStyle(.white.opacity(0.6))
+                                .foregroundStyle(.white.opacity(0.7))
                                 .multilineTextAlignment(.center)
                                 .padding(.horizontal, 20)
 
@@ -386,23 +332,18 @@ struct LightItUpView: View {
                         }
                     }
                 }
-                .frame(height: 320)
+                .frame(maxHeight: 340)
                 .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
                 .padding(.horizontal)
-
-                if vm.state == .idle || vm.state == .finished {
-                    GameModeLeaderboardCard(mode: .lightItUp)
-                        .padding(.horizontal)
-                }
                 
-                Spacer()
+                Spacer(minLength: 8)
             }
-            .padding(.vertical)
+            .padding(.vertical, 8)
         }
         .navigationTitle("Light It Up")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
+            ToolbarItemGroup(placement: .topBarTrailing) {
                 Button {
                     showLeaderboard = true
                 } label: {
@@ -410,8 +351,7 @@ struct LightItUpView: View {
                 }
                 .foregroundStyle(.orange)
                 .accessibilityLabel("Top scores")
-            }
-            ToolbarItem(placement: .navigationBarTrailing) {
+
                 Button("Close") {
                     dismiss()
                 }

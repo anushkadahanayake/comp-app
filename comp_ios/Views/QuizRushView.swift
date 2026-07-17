@@ -42,7 +42,7 @@ struct QuizRushView: View {
         .navigationTitle("Quiz Rush")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
+            ToolbarItemGroup(placement: .topBarTrailing) {
                 Button {
                     showLeaderboard = true
                 } label: {
@@ -50,8 +50,7 @@ struct QuizRushView: View {
                 }
                 .foregroundStyle(ArcadeTheme.accent)
                 .accessibilityLabel("Top scores")
-            }
-            ToolbarItem(placement: .navigationBarTrailing) {
+
                 Button("Close") {
                     dismiss()
                 }
@@ -160,9 +159,6 @@ struct QuizRushView: View {
                     .shadow(color: ArcadeTheme.accent.opacity(0.25), radius: 8)
             }
             .padding(.top, 8)
-
-            GameModeLeaderboardCard(mode: .quizRush)
-                .padding(.horizontal, 20)
             
             Spacer(minLength: 12)
         }
@@ -308,11 +304,11 @@ struct QuizRushView: View {
             .padding(.horizontal)
             .padding(.top, 8)
 
-            // Score / streak strip
-            HStack(spacing: 12) {
-                statChip(title: "SCORE", value: "\(vm.score)", color: ArcadeTheme.accent)
-                statChip(title: "STREAK", value: "\(vm.streak)", color: ArcadeTheme.warning)
-                statChip(title: "CORRECT", value: "\(vm.totalCorrect)", color: ArcadeTheme.accentSecondary)
+            // Score / streak strip — icon on top of each card
+            HStack(spacing: 10) {
+                GameStatCard(title: "SCORE", value: "\(vm.score)", systemImage: "star.fill", accent: ArcadeTheme.accent)
+                GameStatCard(title: "STREAK", value: "\(vm.streak)", systemImage: "flame.fill", accent: ArcadeTheme.warning)
+                GameStatCard(title: "CORRECT", value: "\(vm.totalCorrect)", systemImage: "checkmark.circle.fill", accent: ArcadeTheme.accentSecondary)
             }
             .padding(.horizontal)
             
@@ -402,27 +398,6 @@ struct QuizRushView: View {
         case .medium: return .orange
         case .hard: return .red
         }
-    }
-
-    private func statChip(title: String, value: String, color: Color) -> some View {
-        VStack(spacing: 4) {
-            Text(title)
-                .font(.system(.caption2, design: .rounded))
-                .fontWeight(.black)
-                .foregroundStyle(color)
-            Text(value)
-                .font(.system(.headline, design: .rounded))
-                .fontWeight(.black)
-                .foregroundStyle(.white)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 10)
-        .background(ArcadeTheme.surface)
-        .cornerRadius(16)
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(color.opacity(0.35), lineWidth: 1.5)
-        )
     }
 
     private var levelCompleteView: some View {
@@ -535,11 +510,10 @@ struct QuizRushView: View {
                 }
                 
                 if vm.isNewHighScore {
-                    Text("🎉 NEW HIGH SCORE! 🎉")
-                        .font(.caption)
-                        .fontWeight(.bold)
+                    Label("NEW HIGH SCORE!", systemImage: "trophy.fill")
+                        .font(.caption.weight(.bold))
                         .foregroundStyle(.white)
-                        .padding(.vertical, 6)
+                        .padding(.vertical, 8)
                         .padding(.horizontal, 16)
                         .background(
                             LinearGradient(colors: [.orange, .yellow], startPoint: .leading, endPoint: .trailing)
@@ -595,8 +569,6 @@ struct QuizRushView: View {
                             .padding(.vertical, 8)
                             .padding(.horizontal, 24)
                     }
-
-                    GameModeLeaderboardCard(mode: .quizRush)
                 }
             }
             .padding(.all, 32)

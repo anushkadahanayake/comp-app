@@ -90,7 +90,11 @@ struct LoginView: View {
                             .padding(.horizontal, 24)
                     }
 
-                    Text("Saved only on this device. Guests only need a nickname.")
+                    if !auth.savedGuests.isEmpty {
+                        savedGuestsSection
+                    }
+
+                    Text("Guests are saved on this device for 30 days so you can resume. Upgrade a guest in Settings to keep scores forever with a password.")
                         .font(.caption)
                         .foregroundStyle(ArcadeTheme.textTertiary)
                         .multilineTextAlignment(.center)
@@ -104,6 +108,45 @@ struct LoginView: View {
         }
         .sheet(isPresented: $showGuestSheet) {
             guestSheet
+        }
+    }
+
+    private var savedGuestsSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Resume saved guest")
+                .font(.caption.weight(.bold))
+                .foregroundStyle(ArcadeTheme.textTertiary)
+                .padding(.horizontal, 28)
+
+            ForEach(auth.savedGuests.prefix(6)) { guest in
+                Button {
+                    auth.resumeGuest(playerId: guest.id)
+                } label: {
+                    HStack(spacing: 12) {
+                        Image(systemName: guest.avatarSymbol)
+                            .foregroundStyle(.white)
+                            .frame(width: 36, height: 36)
+                            .background(ArcadeTheme.accent.opacity(0.35), in: Circle())
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(guest.displayName)
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(.white)
+                            Text("Guest · last played \(guest.lastPlayedAt.formatted(date: .abbreviated, time: .omitted))")
+                                .font(.caption2)
+                                .foregroundStyle(ArcadeTheme.textTertiary)
+                        }
+
+                        Spacer()
+
+                        Image(systemName: "arrow.right.circle.fill")
+                            .foregroundStyle(ArcadeTheme.accentSoft)
+                    }
+                    .padding(12)
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                }
+                .padding(.horizontal, 24)
+            }
         }
     }
 
@@ -139,7 +182,7 @@ struct LoginView: View {
                     TextField("Nickname", text: $guestName)
                         .textInputAutocapitalization(.words)
                 } footer: {
-                    Text("No password needed. You’ll still get your own scores and a spot on the leaderboard.")
+                    Text("No password needed. This guest is saved on this device for 30 days — you can resume it from the login screen. Tip: upgrade to a full account in Settings to keep scores with a password.")
                 }
             }
             .navigationTitle("Play as Guest")

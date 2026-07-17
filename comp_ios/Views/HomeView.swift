@@ -4,6 +4,8 @@ import Combine
 struct HomeView: View {
     @ObservedObject private var auth = AuthService.shared
     @ObservedObject private var statsStore = PlayerStatsStore.shared
+    /// Tells the root shell to hide the custom tab bar while a game is open.
+    @Binding var hideTabBar: Bool
 
     private let games = ArcadeGame.all
 
@@ -16,6 +18,10 @@ struct HomeView: View {
     @State private var animateCarousel = false
     /// Frozen game mode used for navigation — never changes while a game is open.
     @State private var activeGameMode: GameMode?
+
+    init(hideTabBar: Binding<Bool> = .constant(false)) {
+        _hideTabBar = hideTabBar
+    }
 
     private let autoScrollTimer = Timer.publish(every: 4, on: .main, in: .common).autoconnect()
 
@@ -64,8 +70,12 @@ struct HomeView: View {
             // Destination is locked to the mode chosen at tap time — each game stays separate.
             gameDestination(for: mode)
         }
+        .onChange(of: activeGameMode) { _, mode in
+            hideTabBar = mode != nil
+        }
         .onAppear {
             migrateLegacyHighScore()
+            hideTabBar = isPlayingGame
             // Resume browsing carousel only when back on Home (not while a game is open).
             if !isPlayingGame {
                 isAutoScrolling = true

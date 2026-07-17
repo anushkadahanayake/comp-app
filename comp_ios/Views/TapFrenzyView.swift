@@ -197,11 +197,10 @@ struct TapFrenzyView: View {
                                 }
                                 
                                 if vm.isNewHighScore {
-                                    Text("🎉 NEW HIGH SCORE! 🎉")
-                                        .font(.caption)
-                                        .fontWeight(.bold)
+                                    Label("NEW HIGH SCORE!", systemImage: "trophy.fill")
+                                        .font(.caption.weight(.bold))
                                         .foregroundStyle(.white)
-                                        .padding(.vertical, 6)
+                                        .padding(.vertical, 8)
                                         .padding(.horizontal, 16)
                                         .background(
                                             LinearGradient(colors: [.orange, .yellow], startPoint: .leading, endPoint: .trailing)
@@ -329,20 +328,15 @@ struct TapFrenzyView: View {
                             .padding(.horizontal, 24)
                     }
 
-                    if vm.state == .idle || vm.state == .finished {
-                        GameModeLeaderboardCard(mode: .tapFrenzy)
-                            .padding(.horizontal)
-                    }
-
-                    Spacer()
+                    Spacer(minLength: 8)
                 }
-                .padding(.vertical)
+                .padding(.vertical, 8)
             }
         }
         .navigationTitle("Tap Frenzy")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
+            ToolbarItemGroup(placement: .topBarTrailing) {
                 Button {
                     showLeaderboard = true
                 } label: {
@@ -350,8 +344,7 @@ struct TapFrenzyView: View {
                 }
                 .foregroundStyle(.cyan)
                 .accessibilityLabel("Top scores")
-            }
-            ToolbarItem(placement: .navigationBarTrailing) {
+
                 Button("Close") {
                     dismiss()
                 }
@@ -406,33 +399,12 @@ struct TapFrenzyView: View {
 
     private var statsHeader: some View {
         HStack(spacing: 10) {
-            headerPill(title: "SCORE", value: "\(vm.tapCount)", accent: .cyan)
-            headerPill(title: "LEVEL", value: "\(vm.tapFrenzyLevel)", accent: .orange)
-            headerPill(title: "BEST", value: "\(highScoreTapFrenzy)", accent: .purple)
+            GameStatCard(title: "SCORE", value: "\(vm.tapCount)", systemImage: "star.fill", accent: .cyan)
+            GameStatCard(title: "LEVEL", value: "\(vm.tapFrenzyLevel)", systemImage: "arrow.up.circle.fill", accent: .orange)
+            GameStatCard(title: "BEST", value: "\(highScoreTapFrenzy)", systemImage: "crown.fill", accent: .purple)
         }
         .padding(.horizontal)
-        .padding(.top, 8)
-    }
-
-    private func headerPill(title: String, value: String, accent: Color) -> some View {
-        VStack(spacing: 4) {
-            Text(title)
-                .font(.system(.caption2, design: .rounded))
-                .fontWeight(.black)
-                .foregroundStyle(accent)
-            Text(value)
-                .font(.system(.title2, design: .rounded))
-                .fontWeight(.black)
-                .foregroundStyle(.white)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 12)
-        .background(Color(red: 0.08, green: 0.08, blue: 0.15))
-        .cornerRadius(16)
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(accent.opacity(0.35), lineWidth: 1.5)
-        )
+        .padding(.top, 4)
     }
 
     private var timeRemainingBar: some View {

@@ -12,11 +12,21 @@ final class AuthService: ObservableObject {
 
     var isSignedIn: Bool { currentPlayer != nil }
 
+    /// Guests kept on this device (newest first) so they can be resumed after log out.
+    var savedGuests: [PlayerProfile] {
+        knownPlayers
+            .filter(\.isGuest)
+            .sorted { $0.lastPlayedAt > $1.lastPlayedAt }
+    }
+
     private let playersKey = "ArcadeKnownPlayers_v2"
     private let currentPlayerKey = "ArcadeCurrentPlayerId"
+    /// Guests unused longer than this are removed from the resume list.
+    private let guestRetentionDays = 30
 
     private init() {
         loadPlayers()
+        pruneExpiredGuests()
         if let id = UserDefaults.standard.string(forKey: currentPlayerKey) {
             currentPlayer = knownPlayers.first(where: { $0.id == id })
         }
@@ -37,7 +47,7 @@ final class AuthService: ObservableObject {
             authError = "Password must be at least 4 characters."
             return
         }
-        if knownPlayers.contains(where: { $0.username == cleanUser.lowercased() }) {
+        if knownPlayers.contains(where: { $0.username == cleanUser.lowercased() && !$0.isGuest }) {
             authError = "That username is already taken. Try logging in."
             return
         }
@@ -54,17 +64,12 @@ final class AuthService: ObservableObject {
         let cleanUser = username.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         let cleanPass = password.trimmingCharacters(in: .whitespacesAndNewlines)
 
-        guard let player = knownPlayers.first(where: { $0.username == cleanUser }) else {
+        guard let player = knownPlayers.first(where: { $0.username == cleanUser && !$0.isGuest }) else {
             authError = "No account found. Create one first."
             return
         }
         guard player.passwordHash == hashPassword(cleanPass) else {
             authError = "Wrong password. Try again."
-            return
-        }
-
-        guard !player.isGuest else {
-            authError = "That is a guest profile. Use Continue as Guest with a name."
             return
         }
 
@@ -83,8 +88,54 @@ final class AuthService: ObservableObject {
         activate(PlayerProfile.makeGuest(displayName: name))
     }
 
+    /// Resume a guest that was saved on this device (no password).
+    func resumeGuest(playerId: String) {
+        authError = nil
+        guard var guest = knownPlayers.first(where: { $0.id == playerId && $0.isGuest }) else {
+            authError = "That guest profile is no longer saved on this device."
+            return
+        }
+        guest.lastPlayedAt = Date()
+        activate(guest)
+    }
+
+    /// Turn the current guest into a full account — **same player id**, so scores stay.
+    func upgradeGuest(username: String, password: String) {
+        authError = nil
+        guard var player = currentPlayer, player.isGuest else {
+            authError = "Only a guest can upgrade to a full account."
+            return
+        }
+
+        let cleanUser = username.trimmingCharacters(in: .whitespacesAndNewlines)
+        let cleanPass = password.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard cleanUser.count >= 3 else {
+            authError = "Username must be at least 3 characters."
+            return
+        }
+        guard cleanPass.count >= 4 else {
+            authError = "Password must be at least 4 characters."
+            return
+        }
+        if knownPlayers.contains(where: {
+            $0.username == cleanUser.lowercased() && !$0.isGuest && $0.id != player.id
+        }) {
+            authError = "That username is already taken."
+            return
+        }
+
+        player.username = cleanUser.lowercased()
+        player.displayName = cleanUser
+        player.passwordHash = hashPassword(cleanPass)
+        player.isGuest = false
+        player.lastPlayedAt = Date()
+        activate(player)
+    }
+
     // MARK: - Session
 
+    /// Signs out but **keeps** the profile (including guests) on this device for resume.
     func signOut() {
         currentPlayer = nil
         UserDefaults.standard.removeObject(forKey: currentPlayerKey)
@@ -138,6 +189,17 @@ final class AuthService: ObservableObject {
     private func savePlayers() {
         if let data = try? JSONEncoder().encode(knownPlayers) {
             UserDefaults.standard.set(data, forKey: playersKey)
+        }
+    }
+
+    private func pruneExpiredGuests() {
+        let cutoff = Calendar.current.date(byAdding: .day, value: -guestRetentionDays, to: Date()) ?? Date.distantPast
+        let before = knownPlayers.count
+        knownPlayers.removeAll { player in
+            player.isGuest && player.lastPlayedAt < cutoff
+        }
+        if knownPlayers.count != before {
+            savePlayers()
         }
     }
 

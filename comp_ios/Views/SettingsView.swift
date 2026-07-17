@@ -14,7 +14,11 @@ struct SettingsView: View {
     @ObservedObject private var statsStore = PlayerStatsStore.shared
     @State private var showResetConfirmation = false
     @State private var showSignOutConfirmation = false
+    @State private var showUpgradeSheet = false
     @State private var editName = ""
+    @State private var upgradeUsername = ""
+    @State private var upgradePassword = ""
+    @State private var isUpgradePasswordVisible = false
 
     private var challengeTimeBinding: Binding<Date> {
         Binding<Date>(
@@ -66,7 +70,7 @@ struct SettingsView: View {
             Text("This clears only this player’s scores, history, and map pins.")
         }
         .confirmationDialog(
-            "Log Out?",
+            auth.currentPlayer?.isGuest == true ? "Log Out Guest?" : "Log Out?",
             isPresented: $showSignOutConfirmation,
             titleVisibility: .visible
         ) {
@@ -75,7 +79,14 @@ struct SettingsView: View {
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("You’ll return to the login screen. Other accounts stay on this device.")
+            if auth.currentPlayer?.isGuest == true {
+                Text("Warning: Guests have no password. You can resume this guest from the login screen on this device for 30 days. If you start a brand‑new guest instead, you will not get these scores. Tip: use “Create Account & Keep Scores” before logging out.")
+            } else {
+                Text("You’ll return to the login screen. Your account stays on this device — log in again with your password.")
+            }
+        }
+        .sheet(isPresented: $showUpgradeSheet) {
+            upgradeGuestSheet
         }
         .onAppear {
             notifications.checkAuthorizationStatus()
@@ -87,8 +98,12 @@ struct SettingsView: View {
     private var profileSection: some View {
         Section(
             header: sectionHeader("PLAYER PROFILE", color: ArcadeTheme.accent),
-            footer: Text("Accounts are saved on this device only. Sign out to log in as another player.")
-                .foregroundStyle(.secondary)
+            footer: Text(
+                auth.currentPlayer?.isGuest == true
+                    ? "Guest tip: create an account to keep your high scores with a password. Guests can be resumed on this device for 30 days after log out."
+                    : "Accounts are saved on this device only. Sign out to switch players."
+            )
+            .foregroundStyle(.secondary)
         ) {
             if let player = auth.currentPlayer {
                 HStack(spacing: 12) {
@@ -100,7 +115,7 @@ struct SettingsView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(player.displayName)
                             .font(.headline)
-                        Text(player.isGuest ? "Guest" : player.username)
+                        Text(player.isGuest ? "Guest (saved on this device)" : player.username)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
@@ -116,12 +131,83 @@ struct SettingsView: View {
                 }
                 .foregroundStyle(ArcadeTheme.accent)
 
+                if player.isGuest {
+                    Button {
+                        auth.authError = nil
+                        upgradeUsername = ""
+                        upgradePassword = ""
+                        showUpgradeSheet = true
+                    } label: {
+                        Label("Create Account & Keep Scores", systemImage: "person.badge.plus")
+                    }
+                    .foregroundStyle(ArcadeTheme.accentSoft)
+                }
+
                 Button("Log Out", role: .destructive) {
                     showSignOutConfirmation = true
                 }
             }
         }
         .listRowBackground(rowBackground)
+    }
+
+    private var upgradeGuestSheet: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    TextField("Username or email", text: $upgradeUsername)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+
+                    HStack {
+                        Group {
+                            if isUpgradePasswordVisible {
+                                TextField("Password", text: $upgradePassword)
+                                    .textInputAutocapitalization(.never)
+                                    .autocorrectionDisabled()
+                            } else {
+                                SecureField("Password", text: $upgradePassword)
+                            }
+                        }
+                        Button {
+                            isUpgradePasswordVisible.toggle()
+                        } label: {
+                            Image(systemName: isUpgradePasswordVisible ? "eye.slash.fill" : "eye.fill")
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                } footer: {
+                    Text("Your guest high scores, stats, and map pins stay on this same player. You’ll log in with this username and password next time.")
+                }
+
+                if let error = auth.authError {
+                    Text(error)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                }
+            }
+            .navigationTitle("Keep My Scores")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { showUpgradeSheet = false }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Create Account") {
+                        auth.upgradeGuest(username: upgradeUsername, password: upgradePassword)
+                        if auth.authError == nil {
+                            showUpgradeSheet = false
+                            editName = auth.currentPlayer?.displayName ?? editName
+                        }
+                    }
+                    .disabled(
+                        upgradeUsername.trimmingCharacters(in: .whitespacesAndNewlines).count < 3
+                            || upgradePassword.count < 4
+                    )
+                }
+            }
+        }
+        .presentationDetents([.medium])
     }
 
     private var gameplaySection: some View {

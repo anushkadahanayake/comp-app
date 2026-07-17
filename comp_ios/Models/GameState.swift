@@ -52,10 +52,10 @@ nonisolated enum Level: CaseIterable, Sendable {
         }
     }
     
-    /// From Level 3 up, two cards light at once (one normal + one bonus-time).
+    /// From Level 2 up, two cards light at once (one normal + one bonus-time).
     var activeLitCount: Int {
         switch self {
-        case .l3, .l4: return 2
+        case .l2, .l3, .l4: return 2
         default: return 1
         }
     }

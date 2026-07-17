@@ -16,7 +16,7 @@ Survive the round by tapping **lit** cards and avoiding **dim** ones. Score rise
 2. Round length comes from Settings: **30 / 60 / 90** seconds (default **60**).
 3. Player starts with **3 lives**.
 4. Random cards light up; player must tap them before they expire.
-5. From **Level 3**, **two** cards light at once: one normal + one **bonus-time** (gold clock).
+5. From **Level 2**, **two** cards light at once: one normal + one **bonus-time** (gold clock).
 6. Round ends when **time runs out** or **lives reach 0**.
 7. Score is saved for the **current player** only.
 
@@ -38,10 +38,11 @@ Bonus time is capped at **round length + 20s** so rounds cannot grow forever.
 
 ## Bonus-time cards
 
-- Appear whenever **2 cards** light together (Level 3 & 4).
+- Appear whenever **2 cards** light together (Level 2–4).
 - Exactly **one** of the two is bonus-time; the other is a normal lit card.
 - Look: yellow–orange glow with a **clock** icon.
 - Banner shows `+3s TIME!` when collected.
+- Open the in-game **trophy** (top right) for the leaderboard sheet.
 
 ---
 
@@ -52,7 +53,7 @@ Levels advance based on how much of the round time has elapsed:
 | Progress | Level | Cards | Lit window | Lit at once |
 |----------|-------|-------|------------|-------------|
 | 0–25% | Level 1 | 3 | 1.5s | 1 |
-| 25–50% | Level 2 | 4 | 1.2s | 1 |
+| 25–50% | Level 2 | 4 | 1.2s | **2** (1 normal + 1 bonus) |
 | 50–75% | Level 3 | 6 | 1.0s | **2** (1 normal + 1 bonus) |
 | 75–100% | Level 4 | 9 | 0.8s | **2** (1 normal + 1 bonus) |
 
