@@ -1,6 +1,7 @@
 import Foundation
 import CoreLocation
 import Combine
+import MapKit
 import UIKit
 
 final class LocationService: NSObject, ObservableObject, CLLocationManagerDelegate {
@@ -16,6 +17,8 @@ final class LocationService: NSObject, ObservableObject, CLLocationManagerDelega
     @Published private(set) var placeLabel: String?
     @Published var authorizationStatus: CLAuthorizationStatus = .notDetermined
     @Published var locationError: String?
+
+    private var reverseGeocodeTask: Task<Void, Never>?
 
     var currentCoordinate: CLLocationCoordinate2D? {
         guard let lat = currentLatitude, let lon = currentLongitude else { return nil }
@@ -52,8 +55,6 @@ final class LocationService: NSObject, ObservableObject, CLLocationManagerDelega
         @unknown default: return "Unknown"
         }
     }
-
-    private var geocoder = CLGeocoder()
 
     override init() {
         super.init()
@@ -116,17 +117,37 @@ final class LocationService: NSObject, ObservableObject, CLLocationManagerDelega
     }
 
     private func reverseGeocode(_ location: CLLocation) {
-        geocoder.cancelGeocode()
-        geocoder.reverseGeocodeLocation(location) { [weak self] placemarks, _ in
-            DispatchQueue.main.async {
-                guard let self else { return }
-                if let place = placemarks?.first {
-                    let parts = [place.locality, place.administrativeArea, place.country]
-                        .compactMap { $0 }
-                    self.placeLabel = parts.isEmpty ? nil : parts.joined(separator: ", ")
+        reverseGeocodeTask?.cancel()
+        reverseGeocodeTask = Task { [weak self] in
+            guard let self else { return }
+            guard let request = MKReverseGeocodingRequest(location: location) else { return }
+            do {
+                let mapItems = try await request.mapItems
+                guard !Task.isCancelled else { return }
+                let label = Self.placeLabel(from: mapItems.first)
+                await MainActor.run {
+                    if let label {
+                        self.placeLabel = label
+                    }
                 }
+            } catch {
+                // Keep last place label; GPS fix is still valid without a name.
             }
         }
+    }
+
+    private static func placeLabel(from mapItem: MKMapItem?) -> String? {
+        guard let mapItem else { return nil }
+        if let short = mapItem.address?.shortAddress, !short.isEmpty {
+            return short
+        }
+        if let full = mapItem.address?.fullAddress, !full.isEmpty {
+            return full
+        }
+        if let name = mapItem.name, !name.isEmpty {
+            return name
+        }
+        return nil
     }
 
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {

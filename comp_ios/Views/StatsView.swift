@@ -6,9 +6,10 @@ struct StatsView: View {
     @ObservedObject private var auth = AuthService.shared
     @ObservedObject private var statsStore = PlayerStatsStore.shared
 
+    /// Only this signed-in player's games — never other accounts or shared legacy rows.
     private var mySessions: [GameSession] {
         guard let id = auth.currentPlayer?.id else { return [] }
-        return historyManager.sessions.filter { $0.playerId == id || $0.playerId == nil }
+        return historyManager.sessions.filter { $0.playerId == id }
     }
 
     private var highScoreTapFrenzy: Int {
@@ -42,12 +43,6 @@ struct StatsView: View {
         return counts.max(by: { $0.value < $1.value })?.key ?? "—"
     }
 
-    private var leaderboard: [LeaderboardEntry] {
-        _ = statsStore.revision
-        _ = historyManager.sessions.count
-        return statsStore.leaderboard()
-    }
-
     private var rank: (title: String, icon: String, nextAt: Int, progress: Double) {
         if totalPoints < 100 {
             return ("Neon Cadet", "shield.fill", 100, Double(totalPoints) / 100)
@@ -75,7 +70,6 @@ struct StatsView: View {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 20) {
                     profileCard
-                    leaderboardCard
                     summaryGrid
                     personalBestsCard
                     chartsSection
@@ -86,7 +80,7 @@ struct StatsView: View {
                 .padding(.bottom, 28)
             }
         }
-        .navigationTitle("Stats")
+        .navigationTitle("My Stats")
         .navigationBarTitleDisplayMode(.large)
     }
 
@@ -144,80 +138,6 @@ struct StatsView: View {
             RoundedRectangle(cornerRadius: 22, style: .continuous)
                 .strokeBorder(ArcadeTheme.borderStrong, lineWidth: 1)
         )
-    }
-
-    // MARK: - Leaderboard
-
-    private var leaderboardCard: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            sectionHeader("Top Players", icon: "trophy.fill")
-
-            if leaderboard.isEmpty {
-                Text("Play a few games to build the leaderboard.")
-                    .font(.subheadline)
-                    .foregroundStyle(ArcadeTheme.textSecondary)
-                    .padding(.vertical, 8)
-            } else {
-                VStack(spacing: 0) {
-                    ForEach(Array(leaderboard.prefix(8).enumerated()), id: \.element.id) { index, entry in
-                        if index > 0 {
-                            Divider().overlay(ArcadeTheme.border)
-                        }
-                        leaderboardRow(entry)
-                    }
-                }
-            }
-        }
-        .padding(16)
-        .background(ArcadeTheme.surface, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .strokeBorder(ArcadeTheme.borderStrong, lineWidth: 1)
-        )
-    }
-
-    private func leaderboardRow(_ entry: LeaderboardEntry) -> some View {
-        let isMe = entry.playerId == auth.currentPlayer?.id
-        return HStack(spacing: 12) {
-            Text("#\(entry.rank)")
-                .font(.caption.bold())
-                .foregroundStyle(entry.rank <= 3 ? ArcadeTheme.accentSoft : ArcadeTheme.textTertiary)
-                .frame(width: 28, alignment: .leading)
-
-            Image(systemName: entry.avatarSymbol)
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(.white)
-                .frame(width: 32, height: 32)
-                .background(ArcadeTheme.accent.opacity(isMe ? 0.55 : 0.28), in: Circle())
-
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 6) {
-                    Text(entry.displayName)
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(ArcadeTheme.textPrimary)
-                    if isMe {
-                        Text("YOU")
-                            .font(.caption2.bold())
-                            .foregroundStyle(ArcadeTheme.accentSoft)
-                    }
-                }
-                Text("\(entry.gamesPlayed) games · best \(entry.bestScore)")
-                    .font(.caption2)
-                    .foregroundStyle(ArcadeTheme.textTertiary)
-            }
-
-            Spacer()
-
-            VStack(alignment: .trailing, spacing: 2) {
-                Text("\(entry.totalXP)")
-                    .font(.subheadline.bold())
-                    .foregroundStyle(ArcadeTheme.textPrimary)
-                Text("XP")
-                    .font(.caption2)
-                    .foregroundStyle(ArcadeTheme.textTertiary)
-            }
-        }
-        .padding(.vertical, 10)
     }
 
     // MARK: - Summary
