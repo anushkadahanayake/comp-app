@@ -13,11 +13,12 @@ Tap the moving target quickly. Build a combo multiplier, grab green bonus window
 ## How a Round Works
 
 1. Player taps **Play** on Home → Tap Frenzy opens.
-2. Round starts with **10.0s** on the clock (can grow with bonuses, hard cap **25s**).
+2. Round starts with **10.0s** on the clock (can grow with bonuses, hard cap **20s**).
 3. You begin at **Level 1**. Hitting score thresholds raises the level and makes the target harder.
-4. Green taps and combo milestones add time; a floating banner shows `+Xs` / `LEVEL N!`.
-5. When time hits `0`, the round ends.
-6. Score is saved for the **current player** (history + high score). Leaderboard is available in-game (trophy).
+4. Green taps and early combo milestones add time; a floating banner shows `+Xs` / `LEVEL N!`.
+5. From **Level 5**, the clock drains a bit faster so bonus time cannot keep a round alive forever.
+6. When time hits `0`, the round ends.
+7. Score is saved for the **current player** (history + high score). Leaderboard is available in-game (trophy, top right).
 
 ---
 
@@ -26,12 +27,14 @@ Tap the moving target quickly. Build a combo multiplier, grab green bonus window
 | Level | Score needed | What changes |
 |------:|--------------|--------------|
 | 1 | 0 (start) | Base speed |
-| 2 | **25** | Faster moves / mode swaps, +2s |
-| 3 | **50** | Harder again, +2s |
-| 4 | **80** | Harder again, +2s |
-| 5 | **120** | Max in-round level, +2s |
+| 2 | **40** | Faster moves / mode swaps, +1s |
+| 3 | **100** | Harder again, +1s |
+| 4 | **180** | Harder again, +1s |
+| 5 | **280** | Faster drain begins, +1s |
+| 6 | **400** | Harder again, +1s |
+| 7 | **550** | Max in-round level, +1s |
 
-On each level-up: short **LEVEL N!** banner, **+2 seconds**, target moves farther/faster.
+On each level-up: short **LEVEL N!** banner, **+1 second**, target moves farther/faster. Levels 6–7 keep scaling after the old Level 5 plateau.
 
 ---
 
@@ -39,10 +42,12 @@ On each level-up: short **LEVEL N!** banner, **+2 seconds**, target moves farthe
 
 | Action | Extra time |
 |--------|------------|
-| Tap while **green (bonus)** | **+1.0s** |
-| Combo milestones **×3, ×5, ×7…** | **+0.8s** each |
-| **Level up** | **+2.0s** |
-| Hard cap | Time cannot go above **25s** |
+| Tap while **green (bonus)** | **+0.5s** |
+| Combo milestones **×3, ×5, ×7** only | **+0.4s** each |
+| **Level up** | **+1.0s** |
+| Hard cap | Time cannot go above **20s** |
+
+Long combos past ×7 still score big — they just no longer refill the clock.
 
 ---
 
@@ -63,10 +68,10 @@ On each level-up: short **LEVEL N!** banner, **+2 seconds**, target moves farthe
 
 ### Mode cycle
 `normal → bonus → penalty → normal …`  
-Interval shortens as level rises.
+Interval shortens as level rises (down to ~0.9s at Level 7).
 
 ### Movement
-Target jumps on a timer; interval shortens and jump range grows with level.
+Target jumps on a timer; interval shortens (down to ~0.55s) and jump range grows with level.
 
 ### Double points
 - Fires once per round (random ~2–8s)
@@ -74,6 +79,9 @@ Target jumps on a timer; interval shortens and jump range grows with level.
 
 ### Shrink
 Button shrinks as time runs low; minimum size is smaller at higher levels.
+
+### Late-game drain
+From Level 5 upward, each timer tick removes slightly more than 0.05s so high-level rounds still end.
 
 ---
 
@@ -102,7 +110,6 @@ High score key: `HighScore_TapFrenzy_<playerId>`
 
 ## Player Tips
 
-- Keep the combo alive for points **and** time boosts at odd multipliers (×3, ×5…).
-- Hunt **green** windows for +1s and +1 point.
-- Push past 25 / 50 / 80 / 120 to level up and grab +2s — but expect a faster target.
+- Keep the combo alive for points; grab time only at **×3 / ×5 / ×7** and on **green**.
+- Push toward 280 / 400 / 550 for Levels 5–7 — expect a faster, farther target and a hungrier clock.
 - Avoid **gray** — it hurts score and breaks your combo.

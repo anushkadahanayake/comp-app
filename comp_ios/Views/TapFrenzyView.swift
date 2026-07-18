@@ -321,7 +321,7 @@ struct TapFrenzyView: View {
                     }
 
                     if vm.state == .idle {
-                        Text("Score up to level up · Combos & green taps add time (max 25s)")
+                        Text("Score to level up (max Lv 7) · Green & ×3/×5/×7 add time (max 20s)")
                             .font(.caption)
                             .foregroundStyle(.white.opacity(0.55))
                             .multilineTextAlignment(.center)

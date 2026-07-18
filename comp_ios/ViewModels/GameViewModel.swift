@@ -33,7 +33,7 @@ final class GameViewModel: ObservableObject {
     @Published var lastTapDate: Date? = nil
     @Published var buttonOffset: CGSize = .zero
     @Published var buttonScale: CGFloat = 1.0
-    /// Score-based stage inside one Tap Frenzy round (1…5).
+    /// Score-based stage inside one Tap Frenzy round (1…7).
     @Published var tapFrenzyLevel: Int = 1
     /// Progress-bar denominator; grows when bonus time is earned (capped).
     @Published var tapFrenzyTimeCeiling: Double = 10.0
@@ -46,9 +46,10 @@ final class GameViewModel: ObservableObject {
     private var hasUsedDoublePointsThisRound: Bool = false
     private var lastComboTimeBonusAtMultiplier = 0
     private let tapFrenzyBaseTime = 10.0
-    private let tapFrenzyMaxTime = 25.0
-    /// Score thresholds to reach levels 2…5.
-    private let tapFrenzyLevelThresholds = [0, 25, 50, 80, 120]
+    private let tapFrenzyMaxTime = 20.0
+    private let tapFrenzyMaxLevel = 7
+    /// Score thresholds for levels 1…7 (index = level − 1).
+    private let tapFrenzyLevelThresholds = [0, 40, 100, 180, 280, 400, 550]
 
     // Light It Up Game State
     @Published var cards: [Card] = []
@@ -125,12 +126,19 @@ final class GameViewModel: ObservableObject {
 
     private func timerTick() {
         if timeLeft > 0 {
-            timeLeft = max(0.0, timeLeft - 0.05)
+            let drain: Double
+            if currentMode == .tapFrenzy, tapFrenzyLevel >= 5 {
+                // Level 5+: slightly faster drain so bonus time cannot sustain forever.
+                drain = 0.05 * (1.0 + 0.08 * Double(tapFrenzyLevel - 4))
+            } else {
+                drain = 0.05
+            }
+            timeLeft = max(0.0, timeLeft - drain)
             
             if currentMode == .tapFrenzy {
                 let ceiling = max(tapFrenzyTimeCeiling, 0.1)
                 let fraction = timeLeft / ceiling
-                let minScale = max(0.28, 0.42 - Double(tapFrenzyLevel - 1) * 0.03)
+                let minScale = max(0.22, 0.42 - Double(tapFrenzyLevel - 1) * 0.028)
                 self.buttonScale = CGFloat(max(minScale, minScale + (1.0 - minScale) * fraction))
             } else if currentMode == .lightItUp {
                 // Determine level progression dynamically based on roundDurationSetting
@@ -281,14 +289,16 @@ final class GameViewModel: ObservableObject {
         switch buttonMode {
         case .bonus:
             points += 1
-            timeBonus += 1.0 // green window → extra time
+            timeBonus += 0.5 // green window → extra time
         case .normal, .penalty:
             break
         }
 
-        // Combo milestones (×3, ×5, ×7…) grant small time boosts.
-        if didCombo, multiplier >= 3, multiplier % 2 == 1, multiplier != lastComboTimeBonusAtMultiplier {
-            timeBonus += 0.8
+        // Combo milestones ×3 / ×5 / ×7 only (no free time after ×7).
+        if didCombo,
+           [3, 5, 7].contains(multiplier),
+           multiplier != lastComboTimeBonusAtMultiplier {
+            timeBonus += 0.4
             lastComboTimeBonusAtMultiplier = multiplier
         }
 
@@ -309,11 +319,11 @@ final class GameViewModel: ObservableObject {
         for (index, threshold) in tapFrenzyLevelThresholds.enumerated() where tapCount >= threshold {
             newLevel = index + 1
         }
-        newLevel = min(5, newLevel)
+        newLevel = min(tapFrenzyMaxLevel, newLevel)
         guard newLevel > tapFrenzyLevel else { return }
 
         tapFrenzyLevel = newLevel
-        grantTapFrenzyTime(2.0, banner: "LEVEL \(newLevel)! +2s")
+        grantTapFrenzyTime(1.0, banner: "LEVEL \(newLevel)! +1s")
         showLevelUpAlert = true
         hapticTrigger = .success
         // Faster movement / mode swaps at higher levels.
@@ -338,11 +348,13 @@ final class GameViewModel: ObservableObject {
     }
 
     private var tapFrenzyMoveInterval: TimeInterval {
-        max(0.75, 2.0 - Double(tapFrenzyLevel - 1) * 0.28)
+        // Levels 1–7: ~2.0s → ~0.55s
+        max(0.55, 2.0 - Double(tapFrenzyLevel - 1) * 0.24)
     }
 
     private var tapFrenzyColorInterval: TimeInterval {
-        max(1.1, 3.0 - Double(tapFrenzyLevel - 1) * 0.35)
+        // Levels 1–7: ~3.0s → ~0.9s (penalty windows more frequent late-game)
+        max(0.9, 3.0 - Double(tapFrenzyLevel - 1) * 0.35)
     }
 
     // MARK: - Light It Up Gameplay Actions
@@ -405,7 +417,7 @@ final class GameViewModel: ObservableObject {
         moveTimer?.invalidate()
         moveTimer = Timer.scheduledTimer(withTimeInterval: tapFrenzyMoveInterval, repeats: true) { [weak self] _ in
             guard let self = self, self.state == .running else { return }
-            let spread = 100 + CGFloat(self.tapFrenzyLevel) * 12
+            let spread = 100 + CGFloat(self.tapFrenzyLevel) * 16
             let dx = CGFloat.random(in: -spread...spread)
             let dy = CGFloat.random(in: -(spread + 40)...(spread + 40))
             DispatchQueue.main.async {
