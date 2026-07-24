@@ -138,12 +138,17 @@ Shows **only the signed-in player**:
 ### 4.4 Map
 
 - Pins from finished games that have GPS coordinates.
+- **Trophy (top right):** sheet with per-game leaderboards, your personal-best locations, and device record spots — **Show on map** flies to the pin.
+- **Filter chips:** All · Plays · My best · Top spot.
+- Pin styles: trophy = device best score location, star = your personal best, controller = individual plays.
+- Horizontal strip: your high score per game and whether it is pinned.
 - Marker color by game mode; detail card shows score + player name.
 - Live user location when permission granted.
+- Personal best GPS saved when you beat your high score (also backfilled from session history).
 - Default map focus: **Sri Lanka** if GPS not ready (avoids US default).
 - Banner if old pins look far from current GPS (e.g. Simulator).
 
-**Files:** `GameMapView.swift`, `LocationService.swift`
+**Files:** `GameMapView.swift`, `MapTopScoresSheet.swift`, `PlayerStatsStore.swift`, `LocationService.swift`
 
 ### 4.5 Settings
 

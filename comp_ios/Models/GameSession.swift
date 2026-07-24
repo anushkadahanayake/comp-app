@@ -61,6 +61,15 @@ struct GameSession: Codable, Identifiable, Sendable {
     }
 }
 
+/// Where a player set their personal best for a game (stored when high score improves with GPS).
+struct PersonalBestLocation: Codable, Equatable, Sendable {
+    let mode: String
+    let score: Int
+    let latitude: Double
+    let longitude: Double
+    let recordedAt: Date
+}
+
 final class SessionHistoryManager: ObservableObject {
     static let shared = SessionHistoryManager()
 

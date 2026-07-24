@@ -375,7 +375,9 @@ struct LightItUpView: View {
                     vm.isNewHighScore = statsStore.updateHighScoreIfNeeded(
                         score: vm.tapCount,
                         mode: .lightItUp,
-                        playerId: playerId
+                        playerId: playerId,
+                        latitude: LocationService.shared.currentLatitude,
+                        longitude: LocationService.shared.currentLongitude
                     )
                 }
             }

@@ -35,6 +35,9 @@
 		863B62932FD970010088C895 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B628F2FD970010088C895 /* LoginView.swift */; };
 		863B62952FD971010088C895 /* GameModeLeaderboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B62942FD971010088C895 /* GameModeLeaderboardView.swift */; };
 		863B62972FD972010088C895 /* GameStatCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B62962FD972010088C895 /* GameStatCard.swift */; };
+		863B62992FD973010088C895 /* MapTopScoresSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B62982FD973010088C895 /* MapTopScoresSheet.swift */; };
+		863B629B2FD974010088C895 /* ArcadeLaunchSplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B629A2FD974010088C895 /* ArcadeLaunchSplashView.swift */; };
+		863B629D2FD974010088C895 /* AuthWelcomeTransitionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 863B629C2FD974010088C895 /* AuthWelcomeTransitionView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -68,6 +71,9 @@
 		863B628F2FD970010088C895 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		863B62942FD971010088C895 /* GameModeLeaderboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameModeLeaderboardView.swift; sourceTree = "<group>"; };
 		863B62962FD972010088C895 /* GameStatCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameStatCard.swift; sourceTree = "<group>"; };
+		863B62982FD973010088C895 /* MapTopScoresSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapTopScoresSheet.swift; sourceTree = "<group>"; };
+		863B629A2FD974010088C895 /* ArcadeLaunchSplashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArcadeLaunchSplashView.swift; sourceTree = "<group>"; };
+		863B629C2FD974010088C895 /* AuthWelcomeTransitionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthWelcomeTransitionView.swift; sourceTree = "<group>"; };
 		868946602FD95D1B005E1193 /* comp_ios.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = comp_ios.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -111,6 +117,9 @@
 				863B628F2FD970010088C895 /* LoginView.swift */,
 				863B62942FD971010088C895 /* GameModeLeaderboardView.swift */,
 				863B62962FD972010088C895 /* GameStatCard.swift */,
+				863B62982FD973010088C895 /* MapTopScoresSheet.swift */,
+				863B629A2FD974010088C895 /* ArcadeLaunchSplashView.swift */,
+				863B629C2FD974010088C895 /* AuthWelcomeTransitionView.swift */,
 				863B62502FD964320088C895 /* HomeView.swift */,
 				863B62562FD964320088C895 /* SettingsView.swift */,
 				863B62522FD964320088C895 /* TapFrenzyView.swift */,
@@ -258,6 +267,9 @@
 				863B62932FD970010088C895 /* LoginView.swift in Sources */,
 				863B62952FD971010088C895 /* GameModeLeaderboardView.swift in Sources */,
 				863B62972FD972010088C895 /* GameStatCard.swift in Sources */,
+				863B62992FD973010088C895 /* MapTopScoresSheet.swift in Sources */,
+				863B629B2FD974010088C895 /* ArcadeLaunchSplashView.swift in Sources */,
+				863B629D2FD974010088C895 /* AuthWelcomeTransitionView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

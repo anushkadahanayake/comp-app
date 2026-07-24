@@ -3,19 +3,60 @@ import SwiftUI
 struct ContentView: View {
     @ObservedObject private var auth = AuthService.shared
     @State private var selectedTab: ArcadeTab = .home
-    /// Hidden while a game is pushed so HUD / results are not cramped by the tab bar.
     @State private var hideTabBar = false
     @ObservedObject private var locationService = LocationService.shared
 
+    @State private var isLaunchComplete = false
+    @State private var showWelcomeTransition = false
+    @State private var welcomeDisplayName = ""
+
     var body: some View {
-        Group {
-            if auth.isSignedIn {
-                mainShell
-            } else {
-                LoginView()
+        ZStack {
+            Group {
+                if isLaunchComplete {
+                    authenticatedRoot
+                } else {
+                    ArcadeLaunchSplashView()
+                }
+            }
+
+            if showWelcomeTransition {
+                AuthWelcomeTransitionView(displayName: welcomeDisplayName) {
+                    showWelcomeTransition = false
+                }
+                .zIndex(10)
+                .transition(.opacity)
             }
         }
         .preferredColorScheme(.dark)
+        .onAppear {
+            guard !isLaunchComplete else { return }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.9) {
+                withAnimation(.easeOut(duration: 0.35)) {
+                    isLaunchComplete = true
+                }
+            }
+        }
+        .onChange(of: auth.isSignedIn) { wasSignedIn, isSignedIn in
+            guard isLaunchComplete, isSignedIn, !wasSignedIn else { return }
+            presentWelcomeTransition()
+        }
+    }
+
+    @ViewBuilder
+    private var authenticatedRoot: some View {
+        if auth.isSignedIn {
+            mainShell
+        } else {
+            LoginView()
+        }
+    }
+
+    private func presentWelcomeTransition() {
+        welcomeDisplayName = auth.currentPlayer?.displayName ?? "Player"
+        withAnimation(.easeInOut(duration: 0.25)) {
+            showWelcomeTransition = true
+        }
     }
 
     private var mainShell: some View {

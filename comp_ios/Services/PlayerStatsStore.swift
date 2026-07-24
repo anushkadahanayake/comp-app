@@ -27,14 +27,91 @@ final class PlayerStatsStore: ObservableObject {
         }
     }
 
-    func updateHighScoreIfNeeded(score: Int, mode: GameMode, playerId: String) -> Bool {
+    func updateHighScoreIfNeeded(
+        score: Int,
+        mode: GameMode,
+        playerId: String,
+        latitude: Double? = nil,
+        longitude: Double? = nil
+    ) -> Bool {
         let current = highScore(for: mode, playerId: playerId)
         if score > current {
             UserDefaults.standard.set(score, forKey: highScoreKey(mode: mode, playerId: playerId))
+            if let lat = latitude, let lon = longitude {
+                savePersonalBestLocation(
+                    PersonalBestLocation(
+                        mode: mode.rawValue,
+                        score: score,
+                        latitude: lat,
+                        longitude: lon,
+                        recordedAt: Date()
+                    ),
+                    playerId: playerId
+                )
+            }
             revision += 1
             return true
         }
         return false
+    }
+
+    private func personalBestLocationKey(mode: GameMode, playerId: String) -> String {
+        "PersonalBestLocation_\(mode.rawValue)_\(playerId)"
+    }
+
+    func savePersonalBestLocation(_ record: PersonalBestLocation, playerId: String) {
+        guard let mode = GameMode(rawValue: record.mode) else { return }
+        if let data = try? JSONEncoder().encode(record) {
+            UserDefaults.standard.set(data, forKey: personalBestLocationKey(mode: mode, playerId: playerId))
+        }
+    }
+
+    /// Saved GPS for the player’s high score on this device, or inferred from session history.
+    func personalBestLocation(for mode: GameMode, playerId: String) -> PersonalBestLocation? {
+        let key = personalBestLocationKey(mode: mode, playerId: playerId)
+        if let data = UserDefaults.standard.data(forKey: key),
+           let decoded = try? JSONDecoder().decode(PersonalBestLocation.self, from: data) {
+            return decoded
+        }
+        let best = highScore(for: mode, playerId: playerId)
+        guard best > 0 else { return nil }
+        let sessions = SessionHistoryManager.shared.sessions
+        guard let match = sessions
+            .filter({
+                $0.playerId == playerId
+                    && $0.mode == mode.rawValue
+                    && $0.score == best
+                    && $0.latitude != nil
+                    && $0.longitude != nil
+            })
+            .max(by: { $0.timestamp < $1.timestamp }),
+            let lat = match.latitude,
+            let lon = match.longitude
+        else { return nil }
+        return PersonalBestLocation(
+            mode: mode.rawValue,
+            score: best,
+            latitude: lat,
+            longitude: lon,
+            recordedAt: match.timestamp
+        )
+    }
+
+    func personalBestLocations(for playerId: String) -> [PersonalBestLocation] {
+        GameMode.allCases.compactMap { personalBestLocation(for: $0, playerId: playerId) }
+    }
+
+    /// Highest-scoring located session on this device for a game (who / where).
+    func deviceChampionSession(for mode: GameMode) -> GameSession? {
+        let modeName = mode.rawValue
+        let located = SessionHistoryManager.shared.sessions.filter {
+            $0.mode == modeName && $0.latitude != nil && $0.longitude != nil
+        }
+        guard !located.isEmpty else { return nil }
+        let maxScore = located.map(\.score).max() ?? 0
+        return located
+            .filter { $0.score == maxScore }
+            .max(by: { $0.timestamp < $1.timestamp })
     }
 
     func ensureDefaults(for playerId: String) {
@@ -57,6 +134,7 @@ final class PlayerStatsStore: ObservableObject {
     func resetScores(for playerId: String) {
         for mode in [GameMode.tapFrenzy, .lightItUp, .quizRush] {
             UserDefaults.standard.set(0, forKey: highScoreKey(mode: mode, playerId: playerId))
+            UserDefaults.standard.removeObject(forKey: personalBestLocationKey(mode: mode, playerId: playerId))
         }
         revision += 1
     }

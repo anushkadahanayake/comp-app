@@ -372,7 +372,9 @@ struct TapFrenzyView: View {
                     vm.isNewHighScore = statsStore.updateHighScoreIfNeeded(
                         score: vm.tapCount,
                         mode: .tapFrenzy,
-                        playerId: playerId
+                        playerId: playerId,
+                        latitude: LocationService.shared.currentLatitude,
+                        longitude: LocationService.shared.currentLongitude
                     )
                 }
             }

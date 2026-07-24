@@ -384,26 +384,31 @@ final class QuizViewModel: ObservableObject {
         index = max(questions.count, index)
         viewState = .loaded
 
+        let saveLocation = UserDefaults.standard.object(forKey: "SaveLocationWithSessions") as? Bool ?? true
+        if saveLocation {
+            LocationService.shared.refreshLocation()
+        }
+        let lat = saveLocation ? LocationService.shared.currentLatitude : nil
+        let lon = saveLocation ? LocationService.shared.currentLongitude : nil
+
         if let playerId = AuthService.shared.currentPlayer?.id {
             isNewHighScore = PlayerStatsStore.shared.updateHighScoreIfNeeded(
                 score: score,
                 mode: .quizRush,
-                playerId: playerId
+                playerId: playerId,
+                latitude: lat,
+                longitude: lon
             )
         } else {
             isNewHighScore = false
         }
         hapticTrigger = .warning
 
-        let saveLocation = UserDefaults.standard.object(forKey: "SaveLocationWithSessions") as? Bool ?? true
-        if saveLocation {
-            LocationService.shared.refreshLocation()
-        }
         SessionHistoryManager.shared.saveSession(
             mode: "Quiz Rush",
             score: score,
-            latitude: saveLocation ? LocationService.shared.currentLatitude : nil,
-            longitude: saveLocation ? LocationService.shared.currentLongitude : nil
+            latitude: lat,
+            longitude: lon
         )
     }
 
